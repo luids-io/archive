@@ -1,0 +1,10 @@
+backend    = "mongodb"
+
+[mongodb]
+db         = "eventdb"
+url        = "mongodb:27017"
+
+[grpc-archive]
+listenuri  = "tcp://0.0.0.0:5822"
+
+

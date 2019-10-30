@@ -1,7 +1,7 @@
 # Makefile for building xlist
 
 # Project binaries
-COMMANDS=dnsarchive
+COMMANDS=dnsarchive eventarchive
 BINARIES=$(addprefix bin/,$(COMMANDS))
 
 # Used to populate version in binaries

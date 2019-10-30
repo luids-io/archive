@@ -167,7 +167,7 @@ install_binaries() {
 	[ $? -ne 0 ] && step_err && return 1
 	do_clean_file archive_linux.tgz
 
-	for binary in "dnsarchive" ; do
+	for binary in "dnsarchive" "eventarchive" ; do
 		do_install_bin $binary
 		[ $? -ne 0 ] && step_err && return 1
         	do_clean_file $binary
@@ -240,6 +240,25 @@ EOF
 		log "$ETC_DIR/dnsarchive.toml already exists"
 	fi
 
+	if [ ! -f $ETC_DIR/eventarchive.toml ]; then
+		log "creating $ETC_DIR/eventarchive.toml"
+		{ cat > $ETC_DIR/eventarchive.toml <<EOF
+backend    = "mongodb"
+
+[mongodb]
+db         = "eventdb"
+url        = "127.0.0.1:27017"
+
+[grpc-archive]
+listenuri  = "tcp://127.0.0.1:5822"
+
+EOF
+		} &>>$LOG_FILE
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$ETC_DIR/eventarchive.toml already exists"
+	fi
+
 	step_ok
 }
 
@@ -291,6 +310,55 @@ EOF
 		[ $? -ne 0 ] && step_err && return 1
 	else
 		log "$SYSTEMD_DIR/dnsarchive@.service already exists"
+	fi
+
+
+	if [ ! -f $SYSTEMD_DIR/eventarchive.service ]; then
+		log "creating $SYSTEMD_DIR/eventarchive.service"
+		{ cat > $SYSTEMD_DIR/eventarchive.service <<EOF
+[Unit]
+Description=eventarchive service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=1
+User=$SVC_USER
+ExecStart=$BIN_DIR/eventarchive --config $ETC_DIR/eventarchive.toml
+
+[Install]
+WantedBy=multi-user.target
+EOF
+		} &>>$LOG_FILE
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$SYSTEMD_DIR/eventarchive.service already exists"
+	fi
+
+	if [ ! -f $SYSTEMD_DIR/eventarchive@.service ]; then
+		log "creating $SYSTEMD_DIR/eventarchive@.service"
+		{ cat > $SYSTEMD_DIR/eventarchive@.service <<EOF
+[Unit]
+Description=eventarchive service per-config file
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=1
+User=$SVC_USER
+ExecStart=$BIN_DIR/eventarchive --config $ETC_DIR/%i.toml
+
+[Install]
+WantedBy=multi-user.target
+EOF
+		} &>>$LOG_FILE
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$SYSTEMD_DIR/eventarchive@.service already exists"
 	fi
 
 	step_ok
