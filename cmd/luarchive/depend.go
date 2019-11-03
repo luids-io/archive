@@ -9,13 +9,17 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/luisguillenc/serverd"
 	"github.com/luisguillenc/yalogi"
+	"google.golang.org/grpc"
 
 	iconfig "github.com/luids-io/archive/internal/config"
+	ifactory "github.com/luids-io/archive/internal/factory"
 	"github.com/luids-io/archive/pkg/dnsarchive/mongodb"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
 	"github.com/luids-io/core/dnsutil"
-	"github.com/luids-io/core/dnsutil/services/archive"
+	dnsarchive "github.com/luids-io/core/dnsutil/services/archive"
+	"github.com/luids-io/core/event"
+	eventarchive "github.com/luids-io/core/event/services/archive"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {
@@ -23,20 +27,68 @@ func createLogger(debug bool) (yalogi.Logger, error) {
 	return cfactory.Logger(cfgLog, debug)
 }
 
-// create tls archiver
-func createArchiverSvc(srv *serverd.Manager, logger yalogi.Logger) (dnsutil.Archiver, error) {
+// create archiver services
+func createArchiverSvcs(gsrv *grpc.Server, srv *serverd.Manager, logger yalogi.Logger) error {
+	cfgArchiver := cfg.Data("").(*iconfig.ArchiverCfg)
+	if hasString(cfgArchiver.Services, "dns") {
+		a, err := createDNSArchiverSvc(srv, logger)
+		if err != nil {
+			return err
+		}
+		service := dnsarchive.NewService(a)
+		dnsarchive.RegisterServer(gsrv, service)
+	}
+	if hasString(cfgArchiver.Services, "event") {
+		a, err := createEventArchiverSvc(srv, logger)
+		if err != nil {
+			return err
+		}
+		service := eventarchive.NewService(a)
+		eventarchive.RegisterServer(gsrv, service)
+	}
+	return nil
+}
+
+// create dns archiver
+func createDNSArchiverSvc(srv *serverd.Manager, logger yalogi.Logger) (dnsutil.Archiver, error) {
 	cfgArchiver := cfg.Data("").(*iconfig.ArchiverCfg)
 	var backend dnsutil.Archiver
 
 	switch cfgArchiver.Backend {
 	case "mongodb":
-		arc, err := createMDBArchiver(logger)
+		cfgMongoDB := cfg.Data("mongodb").(*iconfig.MongoDBCfg)
+		arc, err := ifactory.DNSArchiveMDB(cfgMongoDB, logger)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't create backend: %v", err)
+			return nil, fmt.Errorf("couldn't create dns-archive backend: %v", err)
 		}
 		backend = arc
 		srv.Register(serverd.Service{
-			Name:     "mongodb.backend",
+			Name:     "dns-archive.backend",
+			Start:    arc.Start,
+			Shutdown: arc.Shutdown,
+			Ping:     arc.Ping,
+		})
+	default:
+		return nil, fmt.Errorf("unknown backend '%s'", cfgArchiver.Backend)
+	}
+	return backend, nil
+}
+
+// create event archiver
+func createEventArchiverSvc(srv *serverd.Manager, logger yalogi.Logger) (event.Archiver, error) {
+	cfgArchiver := cfg.Data("").(*iconfig.ArchiverCfg)
+	var backend event.Archiver
+
+	switch cfgArchiver.Backend {
+	case "mongodb":
+		cfgMongoDB := cfg.Data("mongodb").(*iconfig.MongoDBCfg)
+		arc, err := ifactory.EventArchiveMDB(cfgMongoDB, logger)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't create dns-archive backend: %v", err)
+		}
+		backend = arc
+		srv.Register(serverd.Service{
+			Name:     "event-archive.backend",
 			Start:    arc.Start,
 			Shutdown: arc.Shutdown,
 			Ping:     arc.Ping,
@@ -48,26 +100,23 @@ func createArchiverSvc(srv *serverd.Manager, logger yalogi.Logger) (dnsutil.Arch
 }
 
 // create archiver server
-func createArchiverSrv(a dnsutil.Archiver, srv *serverd.Manager, logger yalogi.Logger) error {
+func createArchiverSrv(srv *serverd.Manager, logger yalogi.Logger) (*grpc.Server, error) {
 	//create server
 	cfgServer := cfg.Data("grpc-archive").(*cconfig.ServerCfg)
 	glis, gsrv, err := cfactory.Server(cfgServer)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	// create service
-	service := archive.NewService(a)
-	archive.RegisterServer(gsrv, service)
 	if cfgServer.Metrics {
 		grpc_prometheus.Register(gsrv)
 	}
 	srv.Register(serverd.Service{
-		Name:     "resolvarchive.server",
+		Name:     "grpc-archive.server",
 		Start:    func() error { go gsrv.Serve(glis); return nil },
 		Shutdown: gsrv.GracefulStop,
 		Stop:     gsrv.Stop,
 	})
-	return nil
+	return gsrv, nil
 }
 
 func createHealthSrv(srv *serverd.Manager, logger yalogi.Logger) error {
@@ -101,4 +150,13 @@ func createMDBArchiver(logger yalogi.Logger) (*mongodb.Archiver, error) {
 		mongodb.SetLogger(logger),
 		mongodb.SetPrefix(cfgMongoDB.Prefix))
 	return archiver, nil
+}
+
+func hasString(ss []string, s string) bool {
+	for _, b := range ss {
+		if b == s {
+			return true
+		}
+	}
+	return false
 }

@@ -1,10 +1,9 @@
 backend    = "mongodb"
+services   = [ "dns", "event" ]
 
 [mongodb]
-db         = "dnsdb"
+db         = "luidsdb"
 url        = "mongodb:27017"
 
 [grpc-archive]
 listenuri  = "tcp://0.0.0.0:5821"
-
-

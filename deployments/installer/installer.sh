@@ -1,21 +1,34 @@
 #!/bin/bash
 
 ## Configuration variables. 
+NAME="archive"
 RELEASE="v0.0.1"
 ARCH="amd64"
-SVC_USER=luarchive
-ETC_DIR=/etc/luarchive
+
+## Base dirs
 BIN_DIR=/usr/local/bin
-VAR_DIR=/var/lib/luarchive
+ETC_DIR=/etc/luids
+VAR_DIR=/var/lib/luids
+CACHE_DIR=/var/cache/luids
 SYSTEMD_DIR=/etc/systemd/system
-DOWNLOAD_BASE="https://github.com/luids-io/archive/releases/download"
-DOWNLOAD_URI="${DOWNLOAD_BASE}/${RELEASE}/luarchive_${RELEASE}_linux_${ARCH}.tgz"
+
+## Service variables
+SVC_USER=lu${NAME}
+SVC_GROUP=luids
+
+## Binaries
+BINARIES="luarchive"
+
+## Download
+DOWNLOAD_BASE="https://github.com/luids-io/${NAME}/releases/download"
+DOWNLOAD_URI="${DOWNLOAD_BASE}/${RELEASE}/${NAME}_${RELEASE}_linux_${ARCH}.tgz"
+
 ##
 
 die() { echo "error: $@" 1>&2 ; exit 1 ; }
 
 ## some checks
-for deps in "wget" "mktemp" "getent" "useradd" ; do
+for deps in "wget" "mktemp" "getent" "useradd" "groupadd" ; do
 	which $deps >/dev/null \
 		|| die "$deps is required!"
 done
@@ -37,17 +50,20 @@ while [ -n "$1" ]; do
 done
 
 echo
-echo "==================="
-echo "luArchive installer "
-echo "==================="
+echo "======================"
+echo "- luIDS installer:"
+echo "   ${NAME} ${RELEASE}"
+echo "======================"
 echo
 
 show_actions() {
 	echo "Warning! This script will commit the following changes to your system:"
 	echo ". Download and install binaries in '${BIN_DIR}'"
-	echo ". Create a system user '${SVC_USER}'"
-	echo ". Create data dir '${VAR_DIR}'"
-	echo ". Create config dir '${ETC_DIR}'"
+	echo ". Create system group '${SVC_GROUP}'"
+	echo ". Create system user '${SVC_USER}'"
+	echo ". Create data dirs in '${VAR_DIR}'"
+	echo ". Create cache dirs in '${CACHE_DIR}'"
+	echo ". Create config dirs in '${ETC_DIR}'"
 	[ -d $SYSTEMD_DIR ] && echo ". Copy systemd configurations to '${SYSTEMD_DIR}'"
 	echo ""
 }
@@ -114,6 +130,29 @@ do_install_bin() {
 	} &>>$LOG_FILE
 }
 
+do_setcap_net_admin() {
+	[ $# -eq 1 ] || die "${FUNCNAME}: unexpected number of params"
+	local binary=$1
+
+	local fpath="${BIN_DIR}/${binary}"
+	[ ! -f $fpath ] && log "$fpath not found!" && return 1
+
+	log "set net_admin capability to $fpath"
+	setcap CAP_NET_ADMIN=+eip $fpath &>>$LOG_FILE
+}
+
+
+do_setcap_bind() {
+	[ $# -eq 1 ] || die "${FUNCNAME}: unexpected number of params"
+	local binary=$1
+
+	local fpath="${BIN_DIR}/${binary}"
+	[ ! -f $fpath ] && log "$fpath not found!" && return 1
+
+	log "set bind capability to $fpath"
+	setcap CAP_NET_BIND_SERVICE=+eip $fpath &>>$LOG_FILE
+}
+
 do_unpackage() {
 	[ $# -eq 1 ] || die "${FUNCNAME}: unexpected number of params"
 	local tgzfile=$1
@@ -125,49 +164,80 @@ do_unpackage() {
 	tar -zxvf $src -C $TMP_DIR &>>$LOG_FILE
 }
 
-do_create_datadir() {
-	[ $# -eq 2 ] || die "${FUNCNAME}: unexpected number of params"
+do_create_dir() {
+	[ $# -ge 1 ] || die "${FUNCNAME}: unexpected number of params"
 	local datadir=$1
-	local datagrp=$2
+	local datagrp=root
+	if [ $# -ge 2 ]; then
+		datagrp=$2
+	fi
+	local perm=755
+	if [ $# -ge 3 ]; then
+		perm=$3
+	fi
 
 	[ -d $datadir ] && log "$datadir found!" && return 1
 	group_exists $datagrp || { log "group $datagrp doesn't exists" && return 1 ; }
 
-	log "creating dir $datadir, chgrp to $datagrp, chmod g+s"
+	log "creating dir $datadir, chgrp to $datagrp, chmod $perm"
 	{ mkdir -p $datadir \
 		&& chown root:$datagrp $datadir \
-		&& chmod 775 $datadir \
-		&& chmod g+s $datadir
+		&& chmod $perm $datadir
 	} &>>$LOG_FILE
 }
 
+do_create_sysgroup() {
+	[ $# -eq 1 ] || die "${FUNCNAME}: unexpected number of params"
+	local ngroup=$1
+
+	group_exists $ngroup && log "group $ngroup already exists" && return 1
+
+	log "groupadd $ngroup with params"
+	groupadd -r $ngroup &>>$LOG_FILE
+}
+
 do_create_sysuser() {
-	[ $# -eq 2 ] || die "${FUNCNAME}: unexpected number of params"
+	[ $# -ge 2 ] || die "${FUNCNAME}: unexpected number of params"
 	local nuser=$1
 	local nhome=$2
+	local ngroup=""
+	if [ $# -ge 3 ]; then
+		ngroup="$3"
+	fi
 
 	user_exists $nuser && log "user $nuser already exists" && return 1
-
-	log "useradd $nuser with params"
-	useradd -s /usr/sbin/nologin -r -M -d $nhome $nuser &>>$LOG_FILE
+	if [ "$ngroup" == "" ]; then
+		log "useradd $nuser as system user"
+		useradd -s /usr/sbin/nologin -r -M -d "$nhome" $nuser &>>$LOG_FILE
+	else
+		log "useradd $nuser as system user with group $ngroup"
+		useradd -s /usr/sbin/nologin -r -M -d "$nhome" -g $ngroup $nuser &>>$LOG_FILE
+	fi
 }
 
 ## steps
 install_binaries() {
 	step "Downloading and installing binaries"
+
 	if [ $OPT_OVERWRITE_BIN -eq 0 ]; then
-		[ -f ${BIN_DIR}/dnsarchive ] \
-			&& log "${BIN_DIR}/dnsarchive already exists" \
-			&& step_ok && return 0
+		for binary in $BINARIES; do
+			if [ -f ${BIN_DIR}/$binary ]; then
+				log "${BIN_DIR}/${binary} already exists, skip download"
+				step_ok
+				return 0
+			fi
+		done
 	fi
-	do_download "$DOWNLOAD_URI" archive_linux.tgz
-	[ $? -ne 0 ] && step_err && return 1
 
-	do_unpackage archive_linux.tgz
+	## download
+	do_download "$DOWNLOAD_URI" ${NAME}_linux.tgz
 	[ $? -ne 0 ] && step_err && return 1
-	do_clean_file archive_linux.tgz
+	do_unpackage ${NAME}_linux.tgz
+	[ $? -ne 0 ] && step_err && return 1
+	do_clean_file ${NAME}_linux.tgz
 
-	for binary in "dnsarchive" "eventarchive" ; do
+	## deploy binaries
+	for binary in $BINARIES; do
 		do_install_bin $binary
 		[ $? -ne 0 ] && step_err && return 1
         	do_clean_file $binary
@@ -176,87 +246,125 @@ install_binaries() {
 	step_ok
 }
 
-create_system_user() {
-	step "Creating system user"
-	user_exists $SVC_USER \
-		&& log "user $SVC_USER already exists" && step_ok && return 0
-	
-	do_create_sysuser "$SVC_USER" "$VAR_DIR"
+create_system_group() {
+	step "Creating system group"
+
+	group_exists $SVC_GROUP \
+		&& log "group $SVC_GROUP already exists" && step_ok && return 0
+	do_create_sysgroup $SVC_GROUP
 	[ $? -ne 0 ] && step_err && return 1
 	
+	step_ok
+}
+
+create_system_user() {
+	step "Creating system user"
+
+	user_exists $SVC_USER \
+		&& log "user $SVC_USER already exists" && step_ok && return 0
+	do_create_sysuser $SVC_USER $VAR_DIR $SVC_GROUP
+	[ $? -ne 0 ] && step_err && return 1
+
 	step_ok
 }
 
 create_data_dir() {
-	step "Creating data dir"
-	[ -d $VAR_DIR ] && log "$VAR_DIR already exists" && step_ok && return 0
+	step "Creating data dirs"
 
-	do_create_datadir $VAR_DIR $SVC_USER
-	[ $? -ne 0 ] && step_err && return 1
+	if [ ! -d $VAR_DIR ]; then
+		do_create_dir $VAR_DIR
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$VAR_DIR already exists"
+	fi
+
+	if [ ! -d $VAR_DIR/$NAME ]; then
+		do_create_dir $VAR_DIR/$NAME $SVC_GROUP 1770
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$VAR_DIR/$NAME already exists"
+	fi
 
 	step_ok
 }
 
+create_cache_dir() {
+	step "Creating cache dirs"
 
-create_config() {
-	step "Creating config dir with sample files"
+	if [ ! -d $CACHE_DIR ]; then
+		do_create_dir $CACHE_DIR
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$CACHE_DIR already exists"
+	fi
+
+	if [ ! -d $CACHE_DIR/$NAME ]; then
+		do_create_dir $CACHE_DIR/$NAME $SVC_GROUP 1770
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$CACHE_DIR/$NAME already exists"
+	fi
+
+	step_ok
+}
+
+create_base_config() {
+	step "Creating base config"
+
+	## create dirs
 	if [ ! -d $ETC_DIR ]; then
-		log "creating dir $ETC_DIR"
-		{ mkdir -p $ETC_DIR \
-			&& chown root:root $ETC_DIR \
-			&& chmod 755 $ETC_DIR
-		} &>>$LOG_FILE
+		do_create_dir $ETC_DIR
 		[ $? -ne 0 ] && step_err && return 1
 
 		local ssldir="${ETC_DIR}/ssl"
-		log "creating dir $ssldir with subdirs"
-		{ mkdir -p ${ssldir}/certs  ${ssldir}/private \
-			&& chown root:root ${ssldir}/certs \
-			&& chmod 755 ${ssldir}/certs \
-			&& chown root:$SVC_USER ${ssldir}/private \
-			&& chmod 750 ${ssldir}/private
-		} &>>$LOG_FILE
+		do_create_dir $ssldir/certs
+		[ $? -ne 0 ] && step_err && return 1
+		do_create_dir $ssldir/private $SVC_GROUP 750
 		[ $? -ne 0 ] && step_err && return 1
 	else
 		log "$ETC_DIR already exists"
 	fi
 
-	if [ ! -f $ETC_DIR/dnsarchive.toml ]; then
-		log "creating $ETC_DIR/dnsarchive.toml"
-		{ cat > $ETC_DIR/dnsarchive.toml <<EOF
+	## create files
+	if [ ! -f $ETC_DIR/services.json ]; then
+		log "creating $ETC_DIR/services.json"
+		echo "[ ]" > $ETC_DIR/services.json
+	else
+		log "$ETC_DIR/services.json already exists"
+	fi
+
+	step_ok
+}
+
+create_service_config() {
+	step "Creating service config"
+
+	## create dirs
+	if [ ! -d $ETC_DIR/$NAME ]; then
+		do_create_dir $ETC_DIR/$NAME
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$ETC_DIR/$NAME already exists"
+	fi
+
+	## create files
+	if [ ! -f $ETC_DIR/$NAME/luarchive.toml ]; then
+		log "creating $ETC_DIR/$NAME/luarchive.toml"
+		{ cat > $ETC_DIR/$NAME/luarchive.toml <<EOF
 backend    = "mongodb"
+services   = [ "dns", "event" ]
 
 [mongodb]
-db         = "dnsdb"
+db         = "luidsdb"
 url        = "127.0.0.1:27017"
 
 [grpc-archive]
 listenuri  = "tcp://127.0.0.1:5821"
-
 EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
 	else
-		log "$ETC_DIR/dnsarchive.toml already exists"
-	fi
-
-	if [ ! -f $ETC_DIR/eventarchive.toml ]; then
-		log "creating $ETC_DIR/eventarchive.toml"
-		{ cat > $ETC_DIR/eventarchive.toml <<EOF
-backend    = "mongodb"
-
-[mongodb]
-db         = "eventdb"
-url        = "127.0.0.1:27017"
-
-[grpc-archive]
-listenuri  = "tcp://127.0.0.1:5822"
-
-EOF
-		} &>>$LOG_FILE
-		[ $? -ne 0 ] && step_err && return 1
-	else
-		log "$ETC_DIR/eventarchive.toml already exists"
+		log "$ETC_DIR/$NAME/luarchive.toml already exists"
 	fi
 
 	step_ok
@@ -264,11 +372,11 @@ EOF
 
 install_systemd_services() {
 	step "Installing systemd services"
-	if [ ! -f $SYSTEMD_DIR/dnsarchive.service ]; then
-		log "creating $SYSTEMD_DIR/dnsarchive.service"
-		{ cat > $SYSTEMD_DIR/dnsarchive.service <<EOF
+	if [ ! -f $SYSTEMD_DIR/luids-archive.service ]; then
+		log "creating $SYSTEMD_DIR/luids-archive.service"
+		{ cat > $SYSTEMD_DIR/luids-archive.service <<EOF
 [Unit]
-Description=dnsarchive service
+Description=luIDS archive service
 After=network.target
 StartLimitIntervalSec=0
 
@@ -277,7 +385,7 @@ Type=simple
 Restart=on-failure
 RestartSec=1
 User=$SVC_USER
-ExecStart=$BIN_DIR/dnsarchive --config $ETC_DIR/dnsarchive.toml
+ExecStart=$BIN_DIR/luarchive --config $ETC_DIR/$NAME/luarchive.toml
 
 [Install]
 WantedBy=multi-user.target
@@ -285,14 +393,14 @@ EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
 	else
-		log "$SYSTEMD_DIR/dnsarchive.service already exists"
+		log "$SYSTEMD_DIR/luids-archive.service already exists"
 	fi
 
-	if [ ! -f $SYSTEMD_DIR/dnsarchive@.service ]; then
-		log "creating $SYSTEMD_DIR/dnsarchive@.service"
-		{ cat > $SYSTEMD_DIR/dnsarchive@.service <<EOF
+	if [ ! -f $SYSTEMD_DIR/luids-archive@.service ]; then
+		log "creating $SYSTEMD_DIR/luids-archive@.service"
+		{ cat > $SYSTEMD_DIR/luids-archive@.service <<EOF
 [Unit]
-Description=dnsarchive service per-config file
+Description=luIDS archive service per-config file
 After=network.target
 StartLimitIntervalSec=0
 
@@ -301,7 +409,7 @@ Type=simple
 Restart=on-failure
 RestartSec=1
 User=$SVC_USER
-ExecStart=$BIN_DIR/dnsarchive --config $ETC_DIR/%i.toml
+ExecStart=$BIN_DIR/luarchive --config $ETC_DIR/$NAME/%i.toml
 
 [Install]
 WantedBy=multi-user.target
@@ -309,67 +417,20 @@ EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
 	else
-		log "$SYSTEMD_DIR/dnsarchive@.service already exists"
-	fi
-
-
-	if [ ! -f $SYSTEMD_DIR/eventarchive.service ]; then
-		log "creating $SYSTEMD_DIR/eventarchive.service"
-		{ cat > $SYSTEMD_DIR/eventarchive.service <<EOF
-[Unit]
-Description=eventarchive service
-After=network.target
-StartLimitIntervalSec=0
-
-[Service]
-Type=simple
-Restart=on-failure
-RestartSec=1
-User=$SVC_USER
-ExecStart=$BIN_DIR/eventarchive --config $ETC_DIR/eventarchive.toml
-
-[Install]
-WantedBy=multi-user.target
-EOF
-		} &>>$LOG_FILE
-		[ $? -ne 0 ] && step_err && return 1
-	else
-		log "$SYSTEMD_DIR/eventarchive.service already exists"
-	fi
-
-	if [ ! -f $SYSTEMD_DIR/eventarchive@.service ]; then
-		log "creating $SYSTEMD_DIR/eventarchive@.service"
-		{ cat > $SYSTEMD_DIR/eventarchive@.service <<EOF
-[Unit]
-Description=eventarchive service per-config file
-After=network.target
-StartLimitIntervalSec=0
-
-[Service]
-Type=simple
-Restart=on-failure
-RestartSec=1
-User=$SVC_USER
-ExecStart=$BIN_DIR/eventarchive --config $ETC_DIR/%i.toml
-
-[Install]
-WantedBy=multi-user.target
-EOF
-		} &>>$LOG_FILE
-		[ $? -ne 0 ] && step_err && return 1
-	else
-		log "$SYSTEMD_DIR/eventarchive@.service already exists"
+		log "$SYSTEMD_DIR/luids-archive@.service already exists"
 	fi
 
 	step_ok
 }
 
 ## main process
-
 install_binaries || die "Show $LOG_FILE"
+create_system_group || die "Show $LOG_FILE"
 create_system_user || die "Show $LOG_FILE"
 create_data_dir || die "Show $LOG_FILE"
-create_config || die "Show $LOG_FILE"
+create_cache_dir || die "Show $LOG_FILE"
+create_base_config || die "Show $LOG_FILE"
+create_service_config || die "Show $LOG_FILE"
 [ -d $SYSTEMD_DIR ] && { install_systemd_services || die "Show $LOG_FILE for details." ; }
 
 echo

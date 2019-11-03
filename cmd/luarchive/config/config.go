@@ -5,8 +5,8 @@ package config
 import (
 	"github.com/luisguillenc/goconfig"
 
-	cconfig "github.com/luids-io/common/config"
 	iconfig "github.com/luids-io/archive/internal/config"
+	cconfig "github.com/luids-io/common/config"
 )
 
 // Default returns the default configuration
@@ -16,13 +16,16 @@ func Default(program string) *goconfig.Config {
 			Name:     "",
 			Required: true,
 			Short:    true,
-			Data:     &iconfig.ArchiverCfg{Backend: "mongodb"},
+			Data: &iconfig.ArchiverCfg{
+				Backend:  "mongodb",
+				Services: []string{"dns", "event"},
+			},
 		},
 		goconfig.Section{
 			Name:     "mongodb",
 			Required: false,
 			Data: &iconfig.MongoDBCfg{
-				Database: "dnsdb",
+				Database: "luidsdb",
 				URL:      "127.0.0.1:27017",
 			},
 		},

@@ -9,12 +9,12 @@ import (
 	"github.com/luisguillenc/serverd"
 	"github.com/spf13/pflag"
 
-	"github.com/luids-io/archive/cmd/dnsarchive/config"
+	"github.com/luids-io/archive/cmd/luarchive/config"
 )
 
 //Variables for version output
 var (
-	Program  = "dnsarchive"
+	Program  = "luarchive"
 	Build    = "unknown"
 	Version  = "unknown"
 	Revision = "unknown"
@@ -73,16 +73,15 @@ func main() {
 	// creates main server manager
 	srv := serverd.New(serverd.SetLogger(logger))
 
-	// create service
-	backend, err := createArchiverSvc(srv, logger)
-	if err != nil {
-		logger.Fatalf("couldn't create backend: %v", err)
-	}
-
 	// create server
-	err = createArchiverSrv(backend, srv, logger)
+	gsrv, err := createArchiverSrv(srv, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create grpc server: %v", err)
+	}
+
+	err = createArchiverSvcs(gsrv, srv, logger)
+	if err != nil {
+		logger.Fatalf("couldn't create archiver services: %v", err)
 	}
 
 	// creates health server

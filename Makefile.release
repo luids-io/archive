@@ -9,8 +9,8 @@ ifeq (, $(shell which curl))
 endif
 
 
-NAME:=luarchive
-COMMANDS=dnsarchive eventarchive
+NAME:=archive
+COMMANDS=luarchive
 VERSION=$(shell git describe --match 'v[0-9]*' --dirty='.m' --always)
 LINUX_ARCH:=amd64 arm arm64 ppc64le s390x
 PLATFORMS:=$(subst $(SPACE),$(COMMA),$(foreach arch,$(LINUX_ARCH),linux/$(arch)))
