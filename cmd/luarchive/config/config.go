@@ -18,7 +18,7 @@ func Default(program string) *goconfig.Config {
 			Short:    true,
 			Data: &iconfig.ArchiverCfg{
 				Backend:  "mongodb",
-				Services: []string{"dns", "event"},
+				Services: []string{"dns", "event", "tls"},
 			},
 		},
 		goconfig.Section{

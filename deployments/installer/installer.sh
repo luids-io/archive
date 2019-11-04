@@ -352,7 +352,7 @@ create_service_config() {
 		log "creating $ETC_DIR/$NAME/luarchive.toml"
 		{ cat > $ETC_DIR/$NAME/luarchive.toml <<EOF
 backend    = "mongodb"
-services   = [ "dns", "event" ]
+services   = [ "dns", "event", "tls" ]
 
 [mongodb]
 db         = "luidsdb"
