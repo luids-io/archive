@@ -10,15 +10,15 @@ import (
 	"github.com/luisguillenc/yalogi"
 	"google.golang.org/grpc"
 
+	dnsarchive "github.com/luids-io/api/dnsutil/archive"
+	eventarchive "github.com/luids-io/api/event/archive"
+	tlsarchive "github.com/luids-io/api/tlsutil/archive"
 	iconfig "github.com/luids-io/archive/internal/config"
 	ifactory "github.com/luids-io/archive/internal/factory"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
 	"github.com/luids-io/core/dnsutil"
-	dnsarchive "github.com/luids-io/core/dnsutil/services/archive"
 	"github.com/luids-io/core/event"
-	eventarchive "github.com/luids-io/core/event/services/archive"
-	tlsarchive "github.com/luids-io/core/tlsutil/services/archive"
 	"github.com/luids-io/core/tlsutil"
 )
 

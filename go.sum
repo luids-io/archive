@@ -66,6 +66,8 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
+github.com/luids-io/api v0.0.0-20200212133704-bd7b9929bab6 h1:KrombPbR+JQyIueLa2F+nqofw+mZmOGOpyOD48HbL/Q=
+github.com/luids-io/api v0.0.0-20200212133704-bd7b9929bab6/go.mod h1:4IkMQVmc9BMnlA7YXTYpSwDn9+Y+C51cwXEdLqe5SVA=
 github.com/luids-io/common v0.0.0-20191024080137-0797e9b9ebcb h1:JEzcFv81KXcTJS1utb6wnom6JnNWXF44DQDXpt2u+AI=
 github.com/luids-io/common v0.0.0-20191024080137-0797e9b9ebcb/go.mod h1:C0Mh01EMI67r4pgimVfxI60IrReIGx8cfWZi9dSq1pE=
 github.com/luids-io/common v0.0.0-20191121175931-c4528d0c1353 h1:cYP4+hSFDhrpf5SqZ21cWoXlOB2Jl7/BoPxH1gPtTSM=
