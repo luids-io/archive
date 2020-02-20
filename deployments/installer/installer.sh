@@ -372,9 +372,9 @@ EOF
 
 install_systemd_services() {
 	step "Installing systemd services"
-	if [ ! -f $SYSTEMD_DIR/luids-archive.service ]; then
-		log "creating $SYSTEMD_DIR/luids-archive.service"
-		{ cat > $SYSTEMD_DIR/luids-archive.service <<EOF
+	if [ ! -f $SYSTEMD_DIR/luids-luarchive.service ]; then
+		log "creating $SYSTEMD_DIR/luids-luarchive.service"
+		{ cat > $SYSTEMD_DIR/luids-luarchive.service <<EOF
 [Unit]
 Description=luIDS archive service
 After=network.target
@@ -393,12 +393,12 @@ EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
 	else
-		log "$SYSTEMD_DIR/luids-archive.service already exists"
+		log "$SYSTEMD_DIR/luids-luarchive.service already exists"
 	fi
 
-	if [ ! -f $SYSTEMD_DIR/luids-archive@.service ]; then
-		log "creating $SYSTEMD_DIR/luids-archive@.service"
-		{ cat > $SYSTEMD_DIR/luids-archive@.service <<EOF
+	if [ ! -f $SYSTEMD_DIR/luids-luarchive@.service ]; then
+		log "creating $SYSTEMD_DIR/luids-luarchive@.service"
+		{ cat > $SYSTEMD_DIR/luids-luarchive@.service <<EOF
 [Unit]
 Description=luIDS archive service per-config file
 After=network.target
@@ -417,7 +417,7 @@ EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
 	else
-		log "$SYSTEMD_DIR/luids-archive@.service already exists"
+		log "$SYSTEMD_DIR/luids-luarchive@.service already exists"
 	fi
 
 	step_ok
