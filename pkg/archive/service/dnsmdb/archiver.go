@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
-package mongodb
+package dnsmdb
 
 import (
 	"context"
@@ -63,9 +63,9 @@ type Option func(*options)
 
 type options struct {
 	logger         yalogi.Logger
+	closeSession   bool
 	resolvBulkSize int
 	syncSecs       int
-	closeSession   bool
 	prefix         string
 }
 
@@ -73,7 +73,7 @@ var defaultOptions = options{
 	logger:         yalogi.LogNull,
 	resolvBulkSize: DefaultResolvBulkSize,
 	syncSecs:       DefaultSyncSeconds,
-	closeSession:   true,
+	closeSession:   false,
 }
 
 // SetLogger option allows set a custom logger

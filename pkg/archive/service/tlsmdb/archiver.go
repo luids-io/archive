@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
-package mongodb
+package tlsmdb
 
 import (
 	"context"
@@ -87,7 +87,6 @@ var defaultOptions = options{
 	syncSecs:             DefaultSyncSeconds,
 	cacheCertsExpiration: DefaultCacheCertsExpiration,
 	cacheCertsCleanUp:    DefaultCacheCertsCleanUp,
-	closeSession:         true,
 }
 
 // SetLogger option allows set a custom logger

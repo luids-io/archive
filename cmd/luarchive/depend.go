@@ -10,16 +10,27 @@ import (
 	"github.com/luisguillenc/yalogi"
 	"google.golang.org/grpc"
 
-	dnsarchive "github.com/luids-io/api/dnsutil/archive"
-	eventarchive "github.com/luids-io/api/event/archive"
-	tlsarchive "github.com/luids-io/api/tlsutil/archive"
+	dnsapi "github.com/luids-io/api/dnsutil/archive"
+	eventapi "github.com/luids-io/api/event/archive"
+	tlsapi "github.com/luids-io/api/tlsutil/archive"
 	iconfig "github.com/luids-io/archive/internal/config"
 	ifactory "github.com/luids-io/archive/internal/factory"
+	"github.com/luids-io/archive/pkg/archive"
+	"github.com/luids-io/archive/pkg/archive/backend"
+	"github.com/luids-io/archive/pkg/archive/service"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
 	"github.com/luids-io/core/dnsutil"
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/tlsutil"
+
+	// backends
+	_ "github.com/luids-io/archive/pkg/archive/backend/mongodb"
+
+	// services
+	_ "github.com/luids-io/archive/pkg/archive/service/dnsmdb"
+	_ "github.com/luids-io/archive/pkg/archive/service/eventmdb"
+	_ "github.com/luids-io/archive/pkg/archive/service/tlsmdb"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {
@@ -27,109 +38,20 @@ func createLogger(debug bool) (yalogi.Logger, error) {
 	return cfactory.Logger(cfgLog, debug)
 }
 
-// create archiver services
-func createArchiverSvcs(gsrv *grpc.Server, srv *serverd.Manager, logger yalogi.Logger) error {
-	cfgArchiver := cfg.Data("").(*iconfig.ArchiverCfg)
-	if hasString(cfgArchiver.Services, "dns") {
-		a, err := createDNSArchiverSvc(srv, logger)
+func createHealthSrv(srv *serverd.Manager, logger yalogi.Logger) error {
+	cfgHealth := cfg.Data("health").(*cconfig.HealthCfg)
+	if !cfgHealth.Empty() {
+		hlis, health, err := cfactory.Health(cfgHealth, srv, logger)
 		if err != nil {
-			return err
+			logger.Fatalf("creating health server: %v", err)
 		}
-		service := dnsarchive.NewService(a)
-		dnsarchive.RegisterServer(gsrv, service)
-	}
-	if hasString(cfgArchiver.Services, "event") {
-		a, err := createEventArchiverSvc(srv, logger)
-		if err != nil {
-			return err
-		}
-		service := eventarchive.NewService(a)
-		eventarchive.RegisterServer(gsrv, service)
-	}
-	if hasString(cfgArchiver.Services, "tls") {
-		a, err := createTLSArchiverSvc(srv, logger)
-		if err != nil {
-			return err
-		}
-		service := tlsarchive.NewService(a)
-		tlsarchive.RegisterServer(gsrv, service)
+		srv.Register(serverd.Service{
+			Name:     "health.server",
+			Start:    func() error { go health.Serve(hlis); return nil },
+			Shutdown: func() { health.Close() },
+		})
 	}
 	return nil
-}
-
-// create dns archiver
-func createDNSArchiverSvc(srv *serverd.Manager, logger yalogi.Logger) (dnsutil.Archiver, error) {
-	cfgArchiver := cfg.Data("").(*iconfig.ArchiverCfg)
-	var backend dnsutil.Archiver
-
-	switch cfgArchiver.Backend {
-	case "mongodb":
-		cfgMongoDB := cfg.Data("mongodb").(*iconfig.MongoDBCfg)
-		arc, err := ifactory.DNSArchiveMDB(cfgMongoDB, logger)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't create dns-archive backend: %v", err)
-		}
-		backend = arc
-		srv.Register(serverd.Service{
-			Name:     "dns-archive.backend",
-			Start:    arc.Start,
-			Shutdown: arc.Shutdown,
-			Ping:     arc.Ping,
-		})
-	default:
-		return nil, fmt.Errorf("unknown backend '%s'", cfgArchiver.Backend)
-	}
-	return backend, nil
-}
-
-// create event archiver
-func createEventArchiverSvc(srv *serverd.Manager, logger yalogi.Logger) (event.Archiver, error) {
-	cfgArchiver := cfg.Data("").(*iconfig.ArchiverCfg)
-	var backend event.Archiver
-
-	switch cfgArchiver.Backend {
-	case "mongodb":
-		cfgMongoDB := cfg.Data("mongodb").(*iconfig.MongoDBCfg)
-		arc, err := ifactory.EventArchiveMDB(cfgMongoDB, logger)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't create dns-archive backend: %v", err)
-		}
-		backend = arc
-		srv.Register(serverd.Service{
-			Name:     "event-archive.backend",
-			Start:    arc.Start,
-			Shutdown: arc.Shutdown,
-			Ping:     arc.Ping,
-		})
-	default:
-		return nil, fmt.Errorf("unknown backend '%s'", cfgArchiver.Backend)
-	}
-	return backend, nil
-}
-
-// create tls archiver
-func createTLSArchiverSvc(srv *serverd.Manager, logger yalogi.Logger) (tlsutil.Archiver, error) {
-	cfgArchiver := cfg.Data("").(*iconfig.ArchiverCfg)
-	var backend tlsutil.Archiver
-
-	switch cfgArchiver.Backend {
-	case "mongodb":
-		cfgMongoDB := cfg.Data("mongodb").(*iconfig.MongoDBCfg)
-		arc, err := ifactory.TLSArchiveMDB(cfgMongoDB, logger)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't create dns-archive backend: %v", err)
-		}
-		backend = arc
-		srv.Register(serverd.Service{
-			Name:     "tls-archive.backend",
-			Start:    arc.Start,
-			Shutdown: arc.Shutdown,
-			Ping:     arc.Ping,
-		})
-	default:
-		return nil, fmt.Errorf("unknown backend '%s'", cfgArchiver.Backend)
-	}
-	return backend, nil
 }
 
 // create archiver server
@@ -152,27 +74,77 @@ func createArchiverSrv(srv *serverd.Manager, logger yalogi.Logger) (*grpc.Server
 	return gsrv, nil
 }
 
-func createHealthSrv(srv *serverd.Manager, logger yalogi.Logger) error {
-	cfgHealth := cfg.Data("health").(*cconfig.HealthCfg)
-	if !cfgHealth.Empty() {
-		hlis, health, err := cfactory.Health(cfgHealth, srv, logger)
-		if err != nil {
-			logger.Fatalf("creating health server: %v", err)
-		}
-		srv.Register(serverd.Service{
-			Name:     "health.server",
-			Start:    func() error { go health.Serve(hlis); return nil },
-			Shutdown: func() { health.Close() },
-		})
+func createBackends(srv *serverd.Manager, logger yalogi.Logger) (*backend.Builder, error) {
+	cfgBackend := cfg.Data("backend").(*iconfig.BackendCfg)
+	builder, err := ifactory.BackendBuilder(cfgBackend, logger)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	//create backends
+	err = ifactory.Backends(cfgBackend, builder, logger)
+	if err != nil {
+		return nil, err
+	}
+	srv.Register(serverd.Service{
+		Name:     "backend-builder.service",
+		Start:    builder.Start,
+		Shutdown: func() { builder.Shutdown() },
+	})
+	return builder, nil
 }
 
-func hasString(ss []string, s string) bool {
-	for _, b := range ss {
-		if b == s {
-			return true
-		}
+func createServices(srv *serverd.Manager, finder archive.BackendFinder, logger yalogi.Logger) (*service.Builder, error) {
+	cfgService := cfg.Data("service").(*iconfig.ServiceCfg)
+	builder, err := ifactory.ServiceBuilder(cfgService, finder, logger)
+	if err != nil {
+		return nil, err
 	}
-	return false
+	//create services
+	err = ifactory.Services(cfgService, builder, logger)
+	if err != nil {
+		return nil, err
+	}
+	srv.Register(serverd.Service{
+		Name:     "service-builder.service",
+		Start:    builder.Start,
+		Shutdown: func() { builder.Shutdown() },
+	})
+	return builder, nil
+}
+
+//registerServices create and registe grpc services in grpc server
+func registerServices(srv *serverd.Manager, gsrv *grpc.Server, finder archive.ServiceFinder, logger yalogi.Logger) error {
+	apis := make(map[archive.API]bool)
+	for _, svc := range finder.Services() {
+		if _, registered := apis[svc.API]; registered {
+			return fmt.Errorf("registering '%s': api type already registered in server", svc.ID)
+		}
+		switch svc.API {
+		case archive.EventAPI:
+			a, ok := svc.Object.(event.Archiver)
+			if !ok {
+				return fmt.Errorf("registering '%s': can't cast to type", svc.ID)
+			}
+			gsvc := eventapi.NewService(a)
+			eventapi.RegisterServer(gsrv, gsvc)
+		case archive.DNSAPI:
+			a, ok := svc.Object.(dnsutil.Archiver)
+			if !ok {
+				return fmt.Errorf("registering '%s': can't cast to type", svc.ID)
+			}
+			gsvc := dnsapi.NewService(a)
+			dnsapi.RegisterServer(gsrv, gsvc)
+		case archive.TLSAPI:
+			a, ok := svc.Object.(tlsutil.Archiver)
+			if !ok {
+				return fmt.Errorf("registering '%s': can't cast to type", svc.ID)
+			}
+			gsvc := tlsapi.NewService(a)
+			tlsapi.RegisterServer(gsrv, gsvc)
+		default:
+			return fmt.Errorf("registering '%s': unexpected API", svc.ID)
+		}
+		apis[svc.API] = true
+	}
+	return nil
 }

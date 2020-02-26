@@ -13,21 +13,16 @@ import (
 func Default(program string) *goconfig.Config {
 	cfg, err := goconfig.New(program,
 		goconfig.Section{
-			Name:     "",
+			Name:     "service",
 			Required: true,
-			Short:    true,
-			Data: &iconfig.ArchiverCfg{
-				Backend:  "mongodb",
-				Services: []string{"dns", "event", "tls"},
-			},
+			Short:    false,
+			Data:     &iconfig.ServiceCfg{},
 		},
 		goconfig.Section{
-			Name:     "mongodb",
+			Name:     "backend",
 			Required: false,
-			Data: &iconfig.MongoDBCfg{
-				Database: "luidsdb",
-				URL:      "127.0.0.1:27017",
-			},
+			Short:    false,
+			Data:     &iconfig.BackendCfg{},
 		},
 		goconfig.Section{
 			Name:     "grpc-archive",

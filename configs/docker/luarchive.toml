@@ -1,9 +1,8 @@
-backend    = "mongodb"
-services   = [ "dns", "event" ]
+[backend]
+files      = [ "/etc/luids/archive/backends.json" ]
 
-[mongodb]
-db         = "luidsdb"
-url        = "mongodb:27017"
+[service]
+files      = [ "/etc/luids/archive/services.json" ]
 
 [grpc-archive]
 listenuri  = "tcp://0.0.0.0:5821"

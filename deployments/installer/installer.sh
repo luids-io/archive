@@ -351,12 +351,11 @@ create_service_config() {
 	if [ ! -f $ETC_DIR/$NAME/luarchive.toml ]; then
 		log "creating $ETC_DIR/$NAME/luarchive.toml"
 		{ cat > $ETC_DIR/$NAME/luarchive.toml <<EOF
-backend    = "mongodb"
-services   = [ "dns", "event", "tls" ]
+[backend]
+files      = [ "/etc/luids/archive/backends.json" ]
 
-[mongodb]
-db         = "luidsdb"
-url        = "127.0.0.1:27017"
+[service]
+files      = [ "/etc/luids/archive/services.json" ]
 
 [grpc-archive]
 listenuri  = "tcp://127.0.0.1:5821"
@@ -365,6 +364,28 @@ EOF
 		[ $? -ne 0 ] && step_err && return 1
 	else
 		log "$ETC_DIR/$NAME/luarchive.toml already exists"
+	fi
+	## backends config	
+	if [ ! -f $ETC_DIR/$NAME/backends.json ]; then
+		log "creating $ETC_DIR/$NAME/backends.json"
+		{ cat > $ETC_DIR/$NAME/backends.json <<EOF
+[ ]
+EOF
+		} &>>$LOG_FILE
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$ETC_DIR/$NAME/backends.json already exists"
+	fi
+	## services config
+	if [ ! -f $ETC_DIR/$NAME/services.json ]; then
+		log "creating $ETC_DIR/$NAME/services.json"
+		{ cat > $ETC_DIR/$NAME/services.json <<EOF
+[ ]
+EOF
+		} &>>$LOG_FILE
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$ETC_DIR/$NAME/services.json already exists"
 	fi
 
 	step_ok

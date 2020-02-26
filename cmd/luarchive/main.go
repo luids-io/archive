@@ -37,6 +37,7 @@ func init() {
 	pflag.BoolVar(&version, "version", version, "Show version.")
 	pflag.BoolVarP(&help, "help", "h", help, "Show this help.")
 	pflag.BoolVar(&debug, "debug", debug, "Enable debug.")
+	pflag.BoolVar(&dryRun, "dry-run", dryRun, "Check connections but don't start service.")
 	pflag.Parse()
 }
 
@@ -73,15 +74,31 @@ func main() {
 	// creates main server manager
 	srv := serverd.New(serverd.SetLogger(logger))
 
-	// create server
+	// create backends and archive services
+	backends, err := createBackends(srv, logger)
+	if err != nil {
+		logger.Fatalf("couldn't create backends: %v", err)
+	}
+	services, err := createServices(srv, backends, logger)
+	if err != nil {
+		logger.Fatalf("couldn't create backends: %v", err)
+	}
+
+	if dryRun {
+		fmt.Println("configuration seems ok")
+		os.Exit(0)
+	}
+
+	// create grpc server
 	gsrv, err := createArchiverSrv(srv, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create grpc server: %v", err)
 	}
 
-	err = createArchiverSvcs(gsrv, srv, logger)
+	// create grpc services and register in server
+	err = registerServices(srv, gsrv, services, logger)
 	if err != nil {
-		logger.Fatalf("couldn't create archiver services: %v", err)
+		logger.Fatalf("couldn't create grpc services in server: %v", err)
 	}
 
 	// creates health server

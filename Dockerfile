@@ -28,6 +28,8 @@ COPY --from=build-env /etc/passwd /etc/passwd
 
 COPY --from=build-env /app/bin/luarchive /bin/
 COPY --from=build-env /app/configs/docker/luarchive.toml /etc/luids/archive/
+COPY --from=build-env /app/configs/docker/backends.json /etc/luids/archive/
+COPY --from=build-env /app/configs/docker/services.json /etc/luids/archive/
 
 USER luarchive
 

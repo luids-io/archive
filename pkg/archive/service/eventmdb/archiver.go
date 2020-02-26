@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
-package mongodb
+package eventmdb
 
 import (
 	"context"
@@ -9,8 +9,9 @@ import (
 	"sync"
 
 	"github.com/globalsign/mgo"
-	"github.com/luids-io/core/event"
 	"github.com/luisguillenc/yalogi"
+
+	"github.com/luids-io/core/event"
 )
 
 // Collection names
@@ -55,8 +56,7 @@ type options struct {
 }
 
 var defaultOptions = options{
-	logger:       yalogi.LogNull,
-	closeSession: true,
+	logger: yalogi.LogNull,
 }
 
 // SetLogger option allows set a custom logger

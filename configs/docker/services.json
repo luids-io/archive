@@ -1,0 +1,26 @@
+[
+    {
+        "id": "event",
+        "class": "eventmdb",
+        "backend": "mongo1",
+        "opts": {
+            "dbname": "eventdb"
+        }
+    },
+    {
+        "id": "dns",
+        "class": "dnsmdb",
+        "backend": "mongo1",
+        "opts": {
+            "dbname": "dnsdb"
+        }
+    },
+    {
+        "id": "tls",
+        "class": "tlsmdb",
+        "backend": "mongo1",
+        "opts": {
+            "dbname": "tlsdb"
+        }
+    }
+]
