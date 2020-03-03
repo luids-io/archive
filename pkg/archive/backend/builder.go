@@ -11,7 +11,7 @@ import (
 	"github.com/luisguillenc/yalogi"
 )
 
-// Builder constructs backends and services
+// Builder constructs backends from definitions
 type Builder struct {
 	archive.BackendFinder
 
@@ -38,8 +38,8 @@ func SetLogger(l yalogi.Logger) Option {
 	}
 }
 
-// New instances a new builder
-func New(opt ...Option) *Builder {
+// NewBuilder instances a new builder
+func NewBuilder(opt ...Option) *Builder {
 	opts := defaultOptions
 	for _, o := range opt {
 		o(&opts)
@@ -53,7 +53,7 @@ func New(opt ...Option) *Builder {
 	}
 }
 
-// FindBackendByID returns the Backend the id
+// FindBackendByID returns the Backend with the id
 func (b *Builder) FindBackendByID(id string) (archive.Backend, bool) {
 	ba, ok := b.backends[id]
 	return ba, ok
@@ -100,7 +100,7 @@ func (b *Builder) OnShutdown(f func() error) {
 
 // Start executes all registered functions.
 func (b *Builder) Start() error {
-	b.logger.Infof("starting backend builder registered services")
+	b.logger.Infof("starting backend builder services")
 	var ret error
 	for _, f := range b.startup {
 		err := f()
@@ -113,7 +113,7 @@ func (b *Builder) Start() error {
 
 // Shutdown executes all registered functions.
 func (b *Builder) Shutdown() error {
-	b.logger.Infof("shutting down backend builder registered services")
+	b.logger.Infof("shutting down backend builder services")
 	var ret error
 	for _, f := range b.shutdown {
 		err := f()

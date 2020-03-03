@@ -29,7 +29,7 @@ const (
 	DefaultSyncSeconds    = 5
 )
 
-// Archiver implements resolv archive backend using a mongo database
+// Archiver implements dns archive backend using a mongo database
 type Archiver struct {
 	dnsutil.Archiver
 	archive.Service
@@ -111,7 +111,7 @@ func (a *Archiver) Start() error {
 	if a.started {
 		return fmt.Errorf("archiver started")
 	}
-	a.logger.Infof("starting mongodb resolv archiver")
+	a.logger.Infof("starting mongodb dns archiver")
 	//create indexes
 	err := a.createIdx()
 	if err != nil {
@@ -145,7 +145,7 @@ func (a *Archiver) Shutdown() {
 	defer a.mu.Unlock()
 
 	if a.started {
-		a.logger.Infof("shutting down resolv archiver")
+		a.logger.Infof("shutting down dns archiver")
 		a.started = false
 		close(a.close)
 		a.session.Fsync(false)

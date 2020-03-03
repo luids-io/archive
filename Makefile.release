@@ -1,4 +1,4 @@
-# Makefile for release xlist
+# Makefile for release
 
 EMPTY:=
 SPACE:=$(EMPTY) $(EMPTY)

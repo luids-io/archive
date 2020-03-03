@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// ArchiveCfg stores archive preferences
+// ArchiveCfg stores archive service preferences
 type ArchiveCfg struct {
 	EventAPI string
 	DNSAPI   string
@@ -23,9 +23,9 @@ func (cfg *ArchiveCfg) SetPFlags(short bool, prefix string) {
 	if prefix != "" {
 		aprefix = prefix + "."
 	}
-	pflag.StringVar(&cfg.EventAPI, aprefix+"eventapi", cfg.EventAPI, "Service for archive events API.")
-	pflag.StringVar(&cfg.DNSAPI, aprefix+"dnsapi", cfg.DNSAPI, "Service for archive dns data API.")
-	pflag.StringVar(&cfg.TLSAPI, aprefix+"tlsapi", cfg.TLSAPI, "Service for archive tls data API.")
+	pflag.StringVar(&cfg.EventAPI, aprefix+"eventapi", cfg.EventAPI, "Service id archive events api.")
+	pflag.StringVar(&cfg.DNSAPI, aprefix+"dnsapi", cfg.DNSAPI, "Service id archive dns api.")
+	pflag.StringVar(&cfg.TLSAPI, aprefix+"tlsapi", cfg.TLSAPI, "Service id archive tls api.")
 }
 
 // BindViper setups posix flags for commandline configuration and bind to viper

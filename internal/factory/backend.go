@@ -18,7 +18,7 @@ func BackendBuilder(cfg *config.BackendCfg, logger yalogi.Logger) (*backend.Buil
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
 	}
-	b := backend.New(backend.SetLogger(logger))
+	b := backend.NewBuilder(backend.SetLogger(logger))
 	return b, nil
 }
 

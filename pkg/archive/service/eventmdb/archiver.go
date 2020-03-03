@@ -120,7 +120,7 @@ func (a *Archiver) Shutdown() {
 	defer a.mu.Unlock()
 
 	if a.started {
-		a.logger.Infof("shutting down resolv archiver")
+		a.logger.Infof("shutting down event archiver")
 		a.started = false
 		a.session.Fsync(false)
 		if a.opts.closeSession {

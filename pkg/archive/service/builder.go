@@ -11,7 +11,7 @@ import (
 	"github.com/luids-io/archive/pkg/archive"
 )
 
-// Builder constructs backends and services
+// Builder constructs archive services from definitions
 type Builder struct {
 	archive.ServiceFinder
 

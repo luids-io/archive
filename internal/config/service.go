@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// ServiceCfg stores archive preferences
+// ServiceCfg stores service preferences
 type ServiceCfg struct {
 	ConfigDirs  []string
 	ConfigFiles []string
