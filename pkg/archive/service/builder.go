@@ -15,13 +15,12 @@ import (
 type Builder struct {
 	archive.ServiceFinder
 
-	opts        options
-	logger      yalogi.Logger
-	services    map[string]bool
-	serviceList []*archive.Service
-	bfinder     archive.BackendFinder
-	startup     []func() error
-	shutdown    []func() error
+	opts     options
+	logger   yalogi.Logger
+	services map[string]archive.Service
+	bfinder  archive.BackendFinder
+	startup  []func() error
+	shutdown []func() error
 }
 
 // Option is used for builder configuration
@@ -40,42 +39,30 @@ func SetLogger(l yalogi.Logger) Option {
 	}
 }
 
-// New instances a new builder
-func New(finder archive.BackendFinder, opt ...Option) *Builder {
+// NewBuilder instances a new builder
+func NewBuilder(finder archive.BackendFinder, opt ...Option) *Builder {
 	opts := defaultOptions
 	for _, o := range opt {
 		o(&opts)
 	}
 	return &Builder{
-		opts:        opts,
-		logger:      opts.logger,
-		services:    make(map[string]bool),
-		serviceList: make([]*archive.Service, 0),
-		bfinder:     finder,
-		startup:     make([]func() error, 0),
-		shutdown:    make([]func() error, 0),
+		opts:     opts,
+		logger:   opts.logger,
+		services: make(map[string]archive.Service),
+		bfinder:  finder,
+		startup:  make([]func() error, 0),
+		shutdown: make([]func() error, 0),
 	}
 }
 
 // FindServiceByID returns the Service with the id
-func (b *Builder) FindServiceByID(id string) (*archive.Service, bool) {
-	for _, svc := range b.serviceList {
-		if svc.ID == id {
-			return svc, true
-		}
-	}
-	return nil, false
-}
-
-// FindAllServices returns the Services created by builder
-func (b *Builder) FindAllServices() []*archive.Service {
-	services := make([]*archive.Service, len(b.serviceList))
-	copy(services, b.serviceList)
-	return services
+func (b *Builder) FindServiceByID(id string) (archive.Service, bool) {
+	svc, ok := b.services[id]
+	return svc, ok
 }
 
 // Build creates a Service using the definition passed as param
-func (b *Builder) Build(def Definition) (*archive.Service, error) {
+func (b *Builder) Build(def Definition) (archive.Service, error) {
 	b.logger.Debugf("building '%s' class '%s'", def.ID, def.Class)
 	if def.ID == "" {
 		return nil, errors.New("id field is required")
@@ -99,8 +86,7 @@ func (b *Builder) Build(def Definition) (*archive.Service, error) {
 		return nil, fmt.Errorf("building '%s': %v", def.ID, err)
 	}
 	//register
-	b.services[def.ID] = true
-	b.serviceList = append(b.serviceList, n)
+	b.services[def.ID] = n
 	return n, nil
 }
 
@@ -116,7 +102,7 @@ func (b *Builder) OnShutdown(f func() error) {
 
 // Start executes all registered functions.
 func (b *Builder) Start() error {
-	b.logger.Infof("starting service builder registered services")
+	b.logger.Infof("starting service builder services")
 	var ret error
 	for _, f := range b.startup {
 		err := f()
@@ -129,7 +115,7 @@ func (b *Builder) Start() error {
 
 // Shutdown executes all registered functions.
 func (b *Builder) Shutdown() error {
-	b.logger.Infof("shutting down service builder registered services")
+	b.logger.Infof("shutting down service builder services")
 	var ret error
 	for _, f := range b.shutdown {
 		err := f()

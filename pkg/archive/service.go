@@ -12,16 +12,13 @@ const (
 	TLSAPI
 )
 
-// Service container stores service information
-type Service struct {
-	ID     string
-	Class  string
-	API    API
-	Object interface{}
+// Service interface for archive services
+type Service interface {
+	GetClass() string
+	Implements() []API
 }
 
 // ServiceFinder interface for services
 type ServiceFinder interface {
-	FindServiceByID(string) (*Service, bool)
-	FindAllServices() []*Service
+	FindServiceByID(string) (Service, bool)
 }

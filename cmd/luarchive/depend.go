@@ -20,9 +20,6 @@ import (
 	"github.com/luids-io/archive/pkg/archive/service"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
-	"github.com/luids-io/core/dnsutil"
-	"github.com/luids-io/core/event"
-	"github.com/luids-io/core/tlsutil"
 
 	// backends
 	_ "github.com/luids-io/archive/pkg/archive/backend/mongodb"
@@ -112,39 +109,44 @@ func createServices(srv *serverd.Manager, finder archive.BackendFinder, logger y
 	return builder, nil
 }
 
-//registerServices create and registe grpc services in grpc server
-func registerServices(srv *serverd.Manager, gsrv *grpc.Server, finder archive.ServiceFinder, logger yalogi.Logger) error {
-	apis := make(map[archive.API]bool)
-	for _, svc := range finder.FindAllServices() {
-		if _, registered := apis[svc.API]; registered {
-			return fmt.Errorf("registering '%s': api type already registered in server", svc.ID)
+func createEventAPIService(gsrv *grpc.Server, finder archive.ServiceFinder, logger yalogi.Logger) error {
+	logger.Infof("creating and registering eventapi grpc service")
+	cfgArchive := cfg.Data("archive").(*iconfig.ArchiveCfg)
+	if cfgArchive.EventAPI != "" {
+		gsvc, err := ifactory.EventAPIService(cfgArchive, finder, logger)
+		if err != nil {
+			return fmt.Errorf("creating eventapi service: %v", err)
 		}
-		switch svc.API {
-		case archive.EventAPI:
-			a, ok := svc.Object.(event.Archiver)
-			if !ok {
-				return fmt.Errorf("registering '%s': can't cast to type", svc.ID)
-			}
-			gsvc := eventapi.NewService(a)
-			eventapi.RegisterServer(gsrv, gsvc)
-		case archive.DNSAPI:
-			a, ok := svc.Object.(dnsutil.Archiver)
-			if !ok {
-				return fmt.Errorf("registering '%s': can't cast to type", svc.ID)
-			}
-			gsvc := dnsapi.NewService(a)
-			dnsapi.RegisterServer(gsrv, gsvc)
-		case archive.TLSAPI:
-			a, ok := svc.Object.(tlsutil.Archiver)
-			if !ok {
-				return fmt.Errorf("registering '%s': can't cast to type", svc.ID)
-			}
-			gsvc := tlsapi.NewService(a)
-			tlsapi.RegisterServer(gsrv, gsvc)
-		default:
-			return fmt.Errorf("registering '%s': unexpected API", svc.ID)
+		eventapi.RegisterServer(gsrv, gsvc)
+		return nil
+	}
+	return nil
+}
+
+func createDNSAPIService(gsrv *grpc.Server, finder archive.ServiceFinder, logger yalogi.Logger) error {
+	logger.Infof("creating and registering dnsapi grpc service")
+	cfgArchive := cfg.Data("archive").(*iconfig.ArchiveCfg)
+	if cfgArchive.DNSAPI != "" {
+		gsvc, err := ifactory.DNSAPIService(cfgArchive, finder, logger)
+		if err != nil {
+			return fmt.Errorf("creating dnsapi service: %v", err)
 		}
-		apis[svc.API] = true
+		dnsapi.RegisterServer(gsrv, gsvc)
+		return nil
+	}
+	return nil
+}
+
+func createTLSAPIService(gsrv *grpc.Server, finder archive.ServiceFinder, logger yalogi.Logger) error {
+	logger.Infof("creating and registering tlsapi grpc service")
+	cfgArchive := cfg.Data("archive").(*iconfig.ArchiveCfg)
+	if cfgArchive.TLSAPI != "" {
+		gsvc, err := ifactory.TLSAPIService(cfgArchive, finder, logger)
+		if err != nil {
+			return fmt.Errorf("creating tlsapi service: %v", err)
+		}
+		tlsapi.RegisterServer(gsrv, gsvc)
+		return nil
 	}
 	return nil
 }

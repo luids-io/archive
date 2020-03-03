@@ -16,7 +16,7 @@ import (
 
 // Builder returns a builder function
 func Builder() service.BuildFn {
-	return func(b *service.Builder, cfg service.Definition) (*archive.Service, error) {
+	return func(b *service.Builder, cfg service.Definition) (archive.Service, error) {
 		if cfg.Backend == "" {
 			return nil, errors.New("'backend' is required")
 		}
@@ -64,14 +64,7 @@ func Builder() service.BuildFn {
 			archiver.Shutdown()
 			return nil
 		})
-		//create service container
-		svc := &archive.Service{
-			ID:     cfg.ID,
-			Class:  ServiceClass,
-			API:    archive.EventAPI,
-			Object: archiver,
-		}
-		return svc, nil
+		return archiver, nil
 	}
 }
 

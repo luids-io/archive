@@ -13,6 +13,12 @@ import (
 func Default(program string) *goconfig.Config {
 	cfg, err := goconfig.New(program,
 		goconfig.Section{
+			Name:     "archive",
+			Required: true,
+			Short:    false,
+			Data:     &iconfig.ArchiveCfg{},
+		},
+		goconfig.Section{
 			Name:     "service",
 			Required: true,
 			Short:    false,

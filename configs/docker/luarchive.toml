@@ -1,3 +1,8 @@
+[archive]
+eventapi   = "event"
+dnsapi     = "dns"
+tlsapi     = "tls"
+
 [backend]
 files      = [ "/etc/luids/archive/backends.json" ]
 

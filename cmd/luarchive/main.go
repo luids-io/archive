@@ -94,11 +94,18 @@ func main() {
 	if err != nil {
 		logger.Fatalf("couldn't create grpc server: %v", err)
 	}
-
-	// create grpc services and register in server
-	err = registerServices(srv, gsrv, services, logger)
+	// create grpc services
+	err = createEventAPIService(gsrv, services, logger)
 	if err != nil {
-		logger.Fatalf("couldn't create grpc services in server: %v", err)
+		logger.Fatalf("couldn't create eventapi service: %v", err)
+	}
+	err = createDNSAPIService(gsrv, services, logger)
+	if err != nil {
+		logger.Fatalf("couldn't create dnsapi service: %v", err)
+	}
+	err = createTLSAPIService(gsrv, services, logger)
+	if err != nil {
+		logger.Fatalf("couldn't create tlsapi service: %v", err)
 	}
 
 	// creates health server

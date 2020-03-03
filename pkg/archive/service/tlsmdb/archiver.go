@@ -15,6 +15,7 @@ import (
 	"github.com/luisguillenc/yalogi"
 	cache "github.com/patrickmn/go-cache"
 
+	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luids-io/core/tlsutil"
 )
 
@@ -34,8 +35,11 @@ const (
 	DefaultCacheCertsCleanUp    = 5 * time.Minute
 )
 
-// Archiver implements resolv archive backend using a mongo database
+// Archiver implements tls archive backend using a mongo database
 type Archiver struct {
+	tlsutil.Archiver
+	archive.Service
+
 	opts   options
 	logger yalogi.Logger
 	//database
@@ -259,4 +263,14 @@ func (a *Archiver) getCollection(name string) *mgo.Collection {
 		name = a.opts.prefix + "_" + name
 	}
 	return a.session.DB(a.database).C(name)
+}
+
+// GetClass implements archive.Service interface
+func (a *Archiver) GetClass() string {
+	return ServiceClass
+}
+
+// Implements implements archive.Service interface
+func (a *Archiver) Implements() []archive.API {
+	return []archive.API{archive.TLSAPI}
 }

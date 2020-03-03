@@ -12,7 +12,7 @@ import (
 )
 
 // BuildFn defines a function that constructs a Service
-type BuildFn func(b *Builder, def Definition) (*archive.Service, error)
+type BuildFn func(b *Builder, def Definition) (archive.Service, error)
 
 // Definition stores configuration definition of services
 type Definition struct {

@@ -19,7 +19,7 @@ func ServiceBuilder(cfg *config.ServiceCfg, finder archive.BackendFinder, logger
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
 	}
-	b := service.New(finder, service.SetLogger(logger))
+	b := service.NewBuilder(finder, service.SetLogger(logger))
 	return b, nil
 }
 

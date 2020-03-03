@@ -14,6 +14,7 @@ import (
 	"github.com/luisguillenc/mongoutil"
 	"github.com/luisguillenc/yalogi"
 
+	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luids-io/core/dnsutil"
 )
 
@@ -30,6 +31,9 @@ const (
 
 // Archiver implements resolv archive backend using a mongo database
 type Archiver struct {
+	dnsutil.Archiver
+	archive.Service
+
 	opts   options
 	logger yalogi.Logger
 	//database
@@ -200,4 +204,14 @@ func (a *Archiver) getCollection(name string) *mgo.Collection {
 		name = a.opts.prefix + "_" + name
 	}
 	return a.session.DB(a.database).C(name)
+}
+
+// GetClass implements archive.Service interface
+func (a *Archiver) GetClass() string {
+	return ServiceClass
+}
+
+// Implements implements archive.Service interface
+func (a *Archiver) Implements() []archive.API {
+	return []archive.API{archive.DNSAPI}
 }
