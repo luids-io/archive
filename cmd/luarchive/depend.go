@@ -86,6 +86,7 @@ func createBackends(srv *serverd.Manager, logger yalogi.Logger) (*backend.Builde
 		Name:     "backend-builder.service",
 		Start:    builder.Start,
 		Shutdown: func() { builder.Shutdown() },
+		Ping:     func() error { return builder.PingAll() },
 	})
 	return builder, nil
 }

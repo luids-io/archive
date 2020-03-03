@@ -5,6 +5,7 @@ package backend
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luisguillenc/yalogi"
@@ -121,6 +122,24 @@ func (b *Builder) Shutdown() error {
 		}
 	}
 	return ret
+}
+
+// PingAll backends.
+func (b *Builder) PingAll() error {
+	b.logger.Debugf("PingAll()")
+	errs := make([]string, 0, len(b.backends))
+	for k, v := range b.backends {
+		err := v.Ping()
+		if err != nil {
+			errs = append(errs, fmt.Sprintf("backend '%s': %v", k, err))
+		}
+	}
+	if len(errs) > 0 {
+		retErr := errors.New(strings.Join(errs, ";"))
+		b.logger.Warnf("%s", retErr)
+		return retErr
+	}
+	return nil
 }
 
 // Logger returns logger
