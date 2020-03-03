@@ -12,14 +12,14 @@ import (
 
 // Builder constructs backends and services
 type Builder struct {
-	opts   options
-	logger yalogi.Logger
+	archive.BackendFinder
 
+	opts        options
+	logger      yalogi.Logger
 	backends    map[string]bool
 	backendList []*archive.Backend
-
-	startup  []func() error
-	shutdown []func() error
+	startup     []func() error
+	shutdown    []func() error
 }
 
 // Option is used for builder configuration
@@ -54,21 +54,14 @@ func New(opt ...Option) *Builder {
 	}
 }
 
-// Backend returns the Backend the id
-func (b *Builder) Backend(id string) (*archive.Backend, bool) {
+// FindBackendByID returns the Backend the id
+func (b *Builder) FindBackendByID(id string) (*archive.Backend, bool) {
 	for _, svc := range b.backendList {
 		if svc.ID == id {
 			return svc, true
 		}
 	}
 	return nil, false
-}
-
-// Backends returns the backends created by builder
-func (b *Builder) Backends() []*archive.Backend {
-	backends := make([]*archive.Backend, len(b.backendList))
-	copy(backends, b.backendList)
-	return backends
 }
 
 // Build creates a Backend using the definition passed as param

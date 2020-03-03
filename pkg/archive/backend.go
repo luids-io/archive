@@ -11,6 +11,5 @@ type Backend struct {
 
 // BackendFinder interface for backends
 type BackendFinder interface {
-	Backend(string) (*Backend, bool)
-	Backends() []*Backend
+	FindBackendByID(string) (*Backend, bool)
 }

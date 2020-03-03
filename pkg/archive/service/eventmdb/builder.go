@@ -21,7 +21,7 @@ func Builder() service.BuildFn {
 			return nil, errors.New("'backend' is required")
 		}
 		//get mongodb backend
-		back, ok := b.BackendFinder().Backend(cfg.Backend)
+		back, ok := b.BackendFinder().FindBackendByID(cfg.Backend)
 		if !ok {
 			return nil, errors.New("'backend' not found")
 		}

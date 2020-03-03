@@ -115,7 +115,7 @@ func createServices(srv *serverd.Manager, finder archive.BackendFinder, logger y
 //registerServices create and registe grpc services in grpc server
 func registerServices(srv *serverd.Manager, gsrv *grpc.Server, finder archive.ServiceFinder, logger yalogi.Logger) error {
 	apis := make(map[archive.API]bool)
-	for _, svc := range finder.Services() {
+	for _, svc := range finder.FindAllServices() {
 		if _, registered := apis[svc.API]; registered {
 			return fmt.Errorf("registering '%s': api type already registered in server", svc.ID)
 		}

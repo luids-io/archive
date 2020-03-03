@@ -22,6 +22,6 @@ type Service struct {
 
 // ServiceFinder interface for services
 type ServiceFinder interface {
-	Service(string) (*Service, bool)
-	Services() []*Service
+	FindServiceByID(string) (*Service, bool)
+	FindAllServices() []*Service
 }

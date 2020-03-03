@@ -6,21 +6,22 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luisguillenc/yalogi"
+
+	"github.com/luids-io/archive/pkg/archive"
 )
 
 // Builder constructs backends and services
 type Builder struct {
-	opts   options
-	logger yalogi.Logger
+	archive.ServiceFinder
 
+	opts        options
+	logger      yalogi.Logger
 	services    map[string]bool
 	serviceList []*archive.Service
 	bfinder     archive.BackendFinder
-
-	startup  []func() error
-	shutdown []func() error
+	startup     []func() error
+	shutdown    []func() error
 }
 
 // Option is used for builder configuration
@@ -56,8 +57,8 @@ func New(finder archive.BackendFinder, opt ...Option) *Builder {
 	}
 }
 
-// Service returns the Service with the id
-func (b *Builder) Service(id string) (*archive.Service, bool) {
+// FindServiceByID returns the Service with the id
+func (b *Builder) FindServiceByID(id string) (*archive.Service, bool) {
 	for _, svc := range b.serviceList {
 		if svc.ID == id {
 			return svc, true
@@ -66,8 +67,8 @@ func (b *Builder) Service(id string) (*archive.Service, bool) {
 	return nil, false
 }
 
-// Services returns the Services created by builder
-func (b *Builder) Services() []*archive.Service {
+// FindAllServices returns the Services created by builder
+func (b *Builder) FindAllServices() []*archive.Service {
 	services := make([]*archive.Service, len(b.serviceList))
 	copy(services, b.serviceList)
 	return services
