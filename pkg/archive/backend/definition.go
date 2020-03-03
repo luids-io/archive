@@ -12,7 +12,7 @@ import (
 )
 
 // BuildFn defines a function that constructs a Backend
-type BuildFn func(b *Builder, def Definition) (*archive.Backend, error)
+type BuildFn func(b *Builder, def Definition) (archive.Backend, error)
 
 // Definition stores configuration definition of backends
 type Definition struct {

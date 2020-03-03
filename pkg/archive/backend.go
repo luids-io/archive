@@ -3,13 +3,19 @@
 package archive
 
 // Backend container stores backend information
-type Backend struct {
-	ID     string
-	Class  string
-	Object interface{}
+type Backend interface {
+	GetClass() string
+	GetSession() interface{}
+	Ping() error
 }
+
+// type Backend struct {
+// 	ID     string
+// 	Class  string
+// 	Object interface{}
+// }
 
 // BackendFinder interface for backends
 type BackendFinder interface {
-	FindBackendByID(string) (*Backend, bool)
+	FindBackendByID(string) (Backend, bool)
 }

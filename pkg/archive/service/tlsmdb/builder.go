@@ -25,11 +25,11 @@ func Builder() service.BuildFn {
 		if !ok {
 			return nil, errors.New("'backend' not found")
 		}
-		if back.Class != mongodb.BackendClass {
-			return nil, fmt.Errorf("'backend' class '%s' not suported in service", back.Class)
+		if back.GetClass() != mongodb.BackendClass {
+			return nil, fmt.Errorf("'backend' class '%s' not suported in service", back.GetClass())
 		}
 		// get session from backend container
-		session, ok := back.Object.(*mgo.Session)
+		session, ok := back.GetSession().(*mgo.Session)
 		if !ok {
 			return nil, errors.New("'backend' not found")
 		}

@@ -14,12 +14,11 @@ import (
 type Builder struct {
 	archive.BackendFinder
 
-	opts        options
-	logger      yalogi.Logger
-	backends    map[string]bool
-	backendList []*archive.Backend
-	startup     []func() error
-	shutdown    []func() error
+	opts     options
+	logger   yalogi.Logger
+	backends map[string]archive.Backend
+	startup  []func() error
+	shutdown []func() error
 }
 
 // Option is used for builder configuration
@@ -45,27 +44,22 @@ func New(opt ...Option) *Builder {
 		o(&opts)
 	}
 	return &Builder{
-		opts:        opts,
-		logger:      opts.logger,
-		backends:    make(map[string]bool),
-		backendList: make([]*archive.Backend, 0),
-		startup:     make([]func() error, 0),
-		shutdown:    make([]func() error, 0),
+		opts:     opts,
+		logger:   opts.logger,
+		backends: make(map[string]archive.Backend),
+		startup:  make([]func() error, 0),
+		shutdown: make([]func() error, 0),
 	}
 }
 
 // FindBackendByID returns the Backend the id
-func (b *Builder) FindBackendByID(id string) (*archive.Backend, bool) {
-	for _, svc := range b.backendList {
-		if svc.ID == id {
-			return svc, true
-		}
-	}
-	return nil, false
+func (b *Builder) FindBackendByID(id string) (archive.Backend, bool) {
+	ba, ok := b.backends[id]
+	return ba, ok
 }
 
 // Build creates a Backend using the definition passed as param
-func (b *Builder) Build(def Definition) (*archive.Backend, error) {
+func (b *Builder) Build(def Definition) (archive.Backend, error) {
 	b.logger.Debugf("building '%s' class '%s'", def.ID, def.Class)
 	if def.ID == "" {
 		return nil, errors.New("id field is required")
@@ -89,8 +83,7 @@ func (b *Builder) Build(def Definition) (*archive.Backend, error) {
 		return nil, fmt.Errorf("building '%s': %v", def.ID, err)
 	}
 	//register
-	b.backends[def.ID] = true
-	b.backendList = append(b.backendList, n)
+	b.backends[def.ID] = n
 	return n, nil
 }
 
