@@ -72,14 +72,14 @@ func main() {
 	}
 
 	// creates main server manager
-	srv := serverd.New(serverd.SetLogger(logger))
+	msrv := serverd.New(serverd.SetLogger(logger))
 
 	// create backends and archive services
-	backends, err := createBackends(srv, logger)
+	backends, err := createBackends(msrv, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create backends: %v", err)
 	}
-	services, err := createServices(srv, backends, logger)
+	services, err := createServices(backends, msrv, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create backends: %v", err)
 	}
@@ -90,32 +90,32 @@ func main() {
 	}
 
 	// create grpc server
-	gsrv, err := createArchiverSrv(srv, logger)
+	gsrv, err := createArchiverSrv(msrv)
 	if err != nil {
 		logger.Fatalf("couldn't create grpc server: %v", err)
 	}
 	// create grpc services
-	err = createEventAPIService(gsrv, services, logger)
+	err = createArchiveEventAPI(gsrv, services, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create eventapi service: %v", err)
 	}
-	err = createDNSAPIService(gsrv, services, logger)
+	err = createArchiveDNSAPI(gsrv, services, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create dnsapi service: %v", err)
 	}
-	err = createTLSAPIService(gsrv, services, logger)
+	err = createArchiveTLSAPI(gsrv, services, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create tlsapi service: %v", err)
 	}
 
 	// creates health server
-	err = createHealthSrv(srv, logger)
+	err = createHealthSrv(msrv, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create health server: %v", err)
 	}
 
 	//run server
-	err = srv.Run()
+	err = msrv.Run()
 	if err != nil {
 		logger.Errorf("running server: %v", err)
 	}

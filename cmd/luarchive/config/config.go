@@ -13,10 +13,10 @@ import (
 func Default(program string) *goconfig.Config {
 	cfg, err := goconfig.New(program,
 		goconfig.Section{
-			Name:     "archive",
+			Name:     "api-archive",
 			Required: true,
 			Short:    false,
-			Data:     &iconfig.ArchiveCfg{},
+			Data:     &iconfig.ArchiveAPICfg{},
 		},
 		goconfig.Section{
 			Name:     "service",
@@ -31,7 +31,7 @@ func Default(program string) *goconfig.Config {
 			Data:     &iconfig.BackendCfg{},
 		},
 		goconfig.Section{
-			Name:     "grpc-archive",
+			Name:     "server-archive",
 			Required: true,
 			Short:    true,
 			Data: &cconfig.ServerCfg{
