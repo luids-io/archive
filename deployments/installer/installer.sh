@@ -351,18 +351,18 @@ create_service_config() {
 	if [ ! -f $ETC_DIR/$NAME/luarchive.toml ]; then
 		log "creating $ETC_DIR/$NAME/luarchive.toml"
 		{ cat > $ETC_DIR/$NAME/luarchive.toml <<EOF
-[archive]
-#eventapi   = "event"
-#dnsapi     = "dns"
-#tlsapi     = "tls"
-
 [backend]
 files      = [ "/etc/luids/archive/backends.json" ]
 
 [service]
 files      = [ "/etc/luids/archive/services.json" ]
 
-[grpc-archive]
+[api-archive]
+#event   = "event"
+#dns     = "dns"
+#tls     = "tls"
+
+[server-archive]
 listenuri  = "tcp://127.0.0.1:5821"
 EOF
 		} &>>$LOG_FILE
