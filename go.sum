@@ -114,6 +114,8 @@ github.com/luids-io/core v0.0.0-20200228120756-a29a5399715a h1:e7jZ/RFY9yFwi5aBX
 github.com/luids-io/core v0.0.0-20200228120756-a29a5399715a/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luids-io/core v0.0.0-20200317081533-8d76b8a5f5e6 h1:khYrigJMckJEExZyalWPQkvg27rk8ke0yxBPJSLc02Q=
 github.com/luids-io/core v0.0.0-20200317081533-8d76b8a5f5e6/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20200317085846-2ed7b23b4747 h1:7j28dVKaR8VHlcvBz4iKiuy4VczXCcbLJYi0anXmdvA=
+github.com/luids-io/core v0.0.0-20200317085846-2ed7b23b4747/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luids-io/resolv v0.0.0-20191030192731-b9aadafa639a h1:+Y1iSdRHKJ9/0IjwcDL3WWq4dL+jO7JnkTIOoFqGtns=
 github.com/luids-io/resolv v0.0.0-20191030192731-b9aadafa639a/go.mod h1:Rm//f7OlQx+FRiZBdzFtYik1gRFjWUljwH2kRlNHZGY=
 github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6 h1:/rapm+jySYEgeGoc7aSwv6I4OX2SnMFOTEUopPljTcg=

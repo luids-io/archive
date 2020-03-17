@@ -17,7 +17,7 @@ type mdbResolvData struct {
 	Name             string `json:"name"`
 	CheckingDisabled bool   `json:"checking_disabled"`
 	//response info
-	ReturnCode        uint16   `json:"return_code"`
+	ReturnCode        int      `json:"return_code"`
 	AuthenticatedData bool     `json:"authenticated_data"`
 	ResolvedIPs       []string `json:"resolved_ips,omitempty" bson:",omitempty"`
 }

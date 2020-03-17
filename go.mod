@@ -10,7 +10,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/luids-io/api v0.0.0-20200228121542-0ac53a4f06b8
 	github.com/luids-io/common v0.0.0-20200210131732-cafa5e19caa9
-	github.com/luids-io/core v0.0.0-20200317081533-8d76b8a5f5e6
+	github.com/luids-io/core v0.0.0-20200317085846-2ed7b23b4747
 	github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6
 	github.com/luisguillenc/grpctls v0.0.0-20191021152419-e99d6682ee98 // indirect
 	github.com/luisguillenc/httphealth v0.0.0-20200210131312-e37786300489 // indirect
