@@ -8,7 +8,7 @@ require (
 	github.com/google/gopacket v1.1.17 // indirect
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/luids-io/api v0.0.0-20200228121542-0ac53a4f06b8
+	github.com/luids-io/api v0.0.0-20200317111543-0b1510f0a4db
 	github.com/luids-io/common v0.0.0-20200210131732-cafa5e19caa9
 	github.com/luids-io/core v0.0.0-20200317085846-2ed7b23b4747
 	github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6
