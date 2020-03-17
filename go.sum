@@ -54,6 +54,7 @@ github.com/golang/protobuf v1.3.1/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5y
 github.com/golang/protobuf v1.3.2 h1:6nsPYzhq5kReh6QImI3k5qWzO4PEbvbIW2cwSfR/6xs=
 github.com/golang/protobuf v1.3.2/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/google/btree v1.0.0/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
+github.com/google/go-cmp v0.2.0 h1:+dTQ8DZQJz0Mb/HjFlkptS1FeQ4cWSnN941F8aEG4SQ=
 github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5aqRK0M=
 github.com/google/go-cmp v0.3.1/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMywk6iLU=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
@@ -111,6 +112,8 @@ github.com/luids-io/core v0.0.0-20200217104011-2c7d4bb44da1 h1:uRREcroNqky8iwA+Z
 github.com/luids-io/core v0.0.0-20200217104011-2c7d4bb44da1/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luids-io/core v0.0.0-20200228120756-a29a5399715a h1:e7jZ/RFY9yFwi5aBXfoHV+kAk4RYPZc3apkxjo576BM=
 github.com/luids-io/core v0.0.0-20200228120756-a29a5399715a/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20200317081533-8d76b8a5f5e6 h1:khYrigJMckJEExZyalWPQkvg27rk8ke0yxBPJSLc02Q=
+github.com/luids-io/core v0.0.0-20200317081533-8d76b8a5f5e6/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luids-io/resolv v0.0.0-20191030192731-b9aadafa639a h1:+Y1iSdRHKJ9/0IjwcDL3WWq4dL+jO7JnkTIOoFqGtns=
 github.com/luids-io/resolv v0.0.0-20191030192731-b9aadafa639a/go.mod h1:Rm//f7OlQx+FRiZBdzFtYik1gRFjWUljwH2kRlNHZGY=
 github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6 h1:/rapm+jySYEgeGoc7aSwv6I4OX2SnMFOTEUopPljTcg=
