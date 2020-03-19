@@ -1,7 +1,7 @@
-[archive]
-eventapi   = "event"
-dnsapi     = "dns"
-tlsapi     = "tls"
+[api-archive]
+event   = "event"
+dns     = "dns"
+tls     = "tls"
 
 [backend]
 files      = [ "/etc/luids/archive/backends.json" ]
@@ -9,5 +9,5 @@ files      = [ "/etc/luids/archive/backends.json" ]
 [service]
 files      = [ "/etc/luids/archive/services.json" ]
 
-[grpc-archive]
+[server-archive]
 listenuri  = "tcp://0.0.0.0:5821"

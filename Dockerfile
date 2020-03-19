@@ -5,7 +5,7 @@ ARG arch=amd64
 RUN apk update && apk add --no-cache git make ca-certificates && update-ca-certificates
 
 # create user for service
-RUN adduser -D -g '' luarchive
+RUN adduser -D -g 'luids' luarchive
 
 WORKDIR /app
 ## dependences
@@ -27,12 +27,10 @@ COPY --from=build-env /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build-env /etc/passwd /etc/passwd
 
 COPY --from=build-env /app/bin/luarchive /bin/
-COPY --from=build-env /app/configs/docker/luarchive.toml /etc/luids/archive/
-COPY --from=build-env /app/configs/docker/backends.json /etc/luids/archive/
-COPY --from=build-env /app/configs/docker/services.json /etc/luids/archive/
+COPY --from=build-env /app/configs/docker/luarchive/* /etc/luids/archive/
 
 USER luarchive
 
 EXPOSE 5821
-VOLUME [ "/etc/luids/archive" ]
-CMD [ "/bin/luarchive" ]
+VOLUME [ "/etc/luids" ]
+CMD [ "/bin/luarchive", "--config", "/etc/luids/archive/luarchive.toml" ]
