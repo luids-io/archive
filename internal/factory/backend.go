@@ -5,11 +5,10 @@ package factory
 import (
 	"fmt"
 
-	"github.com/luisguillenc/yalogi"
-
 	"github.com/luids-io/archive/internal/config"
 	"github.com/luids-io/archive/pkg/archive/backend"
 	"github.com/luids-io/common/util"
+	"github.com/luids-io/core/utils/yalogi"
 )
 
 // BackendBuilder is a factory

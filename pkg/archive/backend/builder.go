@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/luids-io/archive/pkg/archive"
-	"github.com/luisguillenc/yalogi"
+	"github.com/luids-io/core/utils/yalogi"
 )
 
 // Builder constructs backends from definitions

@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/luisguillenc/serverd"
 	"github.com/spf13/pflag"
 
 	"github.com/luids-io/archive/cmd/luarchive/config"
+	"github.com/luids-io/core/utils/serverd"
 )
 
 //Variables for version output

@@ -4,8 +4,6 @@ package main
 
 import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"github.com/luisguillenc/serverd"
-	"github.com/luisguillenc/yalogi"
 	"google.golang.org/grpc"
 
 	dnsapi "github.com/luids-io/api/dnsutil/archive"
@@ -18,6 +16,8 @@ import (
 	"github.com/luids-io/archive/pkg/archive/service"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
+	"github.com/luids-io/core/utils/serverd"
+	"github.com/luids-io/core/utils/yalogi"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {

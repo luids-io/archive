@@ -5,9 +5,10 @@ package config
 import (
 	"fmt"
 
-	"github.com/luids-io/common/util"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"github.com/luids-io/common/util"
 )
 
 // ArchiveAPICfg stores archive service preferences

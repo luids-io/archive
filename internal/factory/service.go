@@ -5,12 +5,11 @@ package factory
 import (
 	"fmt"
 
-	"github.com/luisguillenc/yalogi"
-
 	"github.com/luids-io/archive/internal/config"
 	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luids-io/archive/pkg/archive/service"
 	"github.com/luids-io/common/util"
+	"github.com/luids-io/core/utils/yalogi"
 )
 
 // ServiceBuilder is a factory

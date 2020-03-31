@@ -11,12 +11,12 @@ import (
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
-	"github.com/luisguillenc/mongoutil"
-	"github.com/luisguillenc/yalogi"
 	cache "github.com/patrickmn/go-cache"
 
 	"github.com/luids-io/archive/pkg/archive"
+	"github.com/luids-io/archive/pkg/mongoutil"
 	"github.com/luids-io/core/tlsutil"
+	"github.com/luids-io/core/utils/yalogi"
 )
 
 // Collection names

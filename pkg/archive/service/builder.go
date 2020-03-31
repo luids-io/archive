@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/luisguillenc/yalogi"
+	"github.com/luids-io/core/utils/yalogi"
 
 	"github.com/luids-io/archive/pkg/archive"
 )
