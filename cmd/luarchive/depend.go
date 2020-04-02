@@ -3,6 +3,8 @@
 package main
 
 import (
+	"fmt"
+
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc"
 
@@ -52,7 +54,7 @@ func createArchiverSrv(msrv *serverd.Manager) (*grpc.Server, error) {
 		grpc_prometheus.Register(gsrv)
 	}
 	msrv.Register(serverd.Service{
-		Name:     "archive.server",
+		Name:     fmt.Sprintf("[%s].server", cfgServer.ListenURI),
 		Start:    func() error { go gsrv.Serve(glis); return nil },
 		Shutdown: gsrv.GracefulStop,
 		Stop:     gsrv.Stop,

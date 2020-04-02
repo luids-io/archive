@@ -9,7 +9,7 @@ require (
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/luids-io/api v0.0.0-20200331115633-48703ec9303e
-	github.com/luids-io/common v0.0.0-20200331115700-6784dbcf9dfb
+	github.com/luids-io/common v0.0.0-20200402071902-620ef2e970dc
 	github.com/luids-io/core v0.0.0-20200331153457-d1ed5768d9e5
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/sirupsen/logrus v1.5.0 // indirect
