@@ -3,10 +3,12 @@ event   = "event"
 dns     = "dns"
 tls     = "tls"
 
-[backend]
+[archive]
+
+[archive.backend]
 files      = [ "/etc/luids/archive/backends.json" ]
 
-[service]
+[archive.service]
 files      = [ "/etc/luids/archive/services.json" ]
 
 [server-archive]

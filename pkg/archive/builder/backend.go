@@ -1,6 +1,6 @@
 // Copyright 2020 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package backend
+package builder
 
 import (
 	"encoding/json"
@@ -11,11 +11,11 @@ import (
 	"github.com/luids-io/archive/pkg/archive"
 )
 
-// BuildFn defines a function that constructs a Backend
-type BuildFn func(b *Builder, def Definition) (archive.Backend, error)
+// BuildBackendFn defines a function that constructs a Backend
+type BuildBackendFn func(b *Builder, def BackendDef) (archive.Backend, error)
 
-// Definition stores configuration definition of backends
-type Definition struct {
+// BackendDef stores configuration definition of backends
+type BackendDef struct {
 	// ID must exist and be unique
 	ID string `json:"id"`
 	// Class stores the driver
@@ -42,9 +42,9 @@ type ConfigTLS struct {
 	UseSystemCAs bool   `json:"systemca"`
 }
 
-// DefsFromFile creates a slice from a file in json format.
-func DefsFromFile(path string) ([]Definition, error) {
-	var defs []Definition
+// BackendDefsFromFile creates a slice from a file in json format.
+func BackendDefsFromFile(path string) ([]BackendDef, error) {
+	var defs []BackendDef
 	f, err := os.Open(path)
 	defer f.Close()
 	if err != nil {
@@ -61,13 +61,13 @@ func DefsFromFile(path string) ([]Definition, error) {
 	return defs, nil
 }
 
-// RegisterBuilder registers a builder
-func RegisterBuilder(class string, builder BuildFn) {
-	registryBuilder[class] = builder
+// RegisterBackendBuilder registers a builder
+func RegisterBackendBuilder(class string, builder BuildBackendFn) {
+	regBackendBuilder[class] = builder
 }
 
-var registryBuilder map[string]BuildFn
+var regBackendBuilder map[string]BuildBackendFn
 
 func init() {
-	registryBuilder = make(map[string]BuildFn)
+	regBackendBuilder = make(map[string]BuildBackendFn)
 }

@@ -1,24 +1,22 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package service
+package builder
 
 import (
 	"errors"
 	"fmt"
-
-	"github.com/luids-io/core/utils/yalogi"
+	"strings"
 
 	"github.com/luids-io/archive/pkg/archive"
+	"github.com/luids-io/core/utils/yalogi"
 )
 
-// Builder constructs archive services from definitions
+// Builder constructs backends and services from definitions
 type Builder struct {
-	archive.ServiceFinder
-
 	opts     options
 	logger   yalogi.Logger
+	backends map[string]archive.Backend
 	services map[string]archive.Service
-	bfinder  archive.BackendFinder
 	startup  []func() error
 	shutdown []func() error
 }
@@ -40,7 +38,7 @@ func SetLogger(l yalogi.Logger) Option {
 }
 
 // NewBuilder instances a new builder
-func NewBuilder(finder archive.BackendFinder, opt ...Option) *Builder {
+func NewBuilder(opt ...Option) *Builder {
 	opts := defaultOptions
 	for _, o := range opt {
 		o(&opts)
@@ -48,21 +46,56 @@ func NewBuilder(finder archive.BackendFinder, opt ...Option) *Builder {
 	return &Builder{
 		opts:     opts,
 		logger:   opts.logger,
+		backends: make(map[string]archive.Backend),
 		services: make(map[string]archive.Service),
-		bfinder:  finder,
 		startup:  make([]func() error, 0),
 		shutdown: make([]func() error, 0),
 	}
 }
 
-// FindServiceByID returns the Service with the id
-func (b *Builder) FindServiceByID(id string) (archive.Service, bool) {
+// Backend returns the Backend with the id
+func (b *Builder) Backend(id string) (archive.Backend, bool) {
+	ba, ok := b.backends[id]
+	return ba, ok
+}
+
+// Service returns the Service with the id
+func (b *Builder) Service(id string) (archive.Service, bool) {
 	svc, ok := b.services[id]
 	return svc, ok
 }
 
-// Build creates a Service using the definition passed as param
-func (b *Builder) Build(def Definition) (archive.Service, error) {
+// BuildBackend creates a Backend using the definition passed as param
+func (b *Builder) BuildBackend(def BackendDef) (archive.Backend, error) {
+	b.logger.Debugf("building '%s' class '%s'", def.ID, def.Class)
+	if def.ID == "" {
+		return nil, errors.New("id field is required")
+	}
+	//check if exists
+	_, ok := b.backends[def.ID]
+	if ok {
+		return nil, errors.New("'%s' exists")
+	}
+	//check if disabled
+	if def.Disabled {
+		return nil, fmt.Errorf("'%s' is disabled", def.ID)
+	}
+	//get builder
+	customb, ok := regBackendBuilder[def.Class]
+	if !ok {
+		return nil, fmt.Errorf("can't find a builder for '%s' in '%s'", def.Class, def.ID)
+	}
+	n, err := customb(b, def) //builds
+	if err != nil {
+		return nil, fmt.Errorf("building '%s': %v", def.ID, err)
+	}
+	//register
+	b.backends[def.ID] = n
+	return n, nil
+}
+
+// BuildService creates a Service using the definition passed as param
+func (b *Builder) BuildService(def ServiceDef) (archive.Service, error) {
 	b.logger.Debugf("building '%s' class '%s'", def.ID, def.Class)
 	if def.ID == "" {
 		return nil, errors.New("id field is required")
@@ -77,7 +110,7 @@ func (b *Builder) Build(def Definition) (archive.Service, error) {
 		return nil, fmt.Errorf("'%s' is disabled", def.ID)
 	}
 	//get builder
-	customb, ok := registryBuilder[def.Class]
+	customb, ok := regServiceBuilder[def.Class]
 	if !ok {
 		return nil, fmt.Errorf("can't find a builder for '%s' in '%s'", def.Class, def.ID)
 	}
@@ -102,7 +135,7 @@ func (b *Builder) OnShutdown(f func() error) {
 
 // Start executes all registered functions.
 func (b *Builder) Start() error {
-	b.logger.Infof("starting service builder services")
+	b.logger.Infof("starting archive services")
 	var ret error
 	for _, f := range b.startup {
 		err := f()
@@ -115,23 +148,40 @@ func (b *Builder) Start() error {
 
 // Shutdown executes all registered functions.
 func (b *Builder) Shutdown() error {
-	b.logger.Infof("shutting down service builder services")
-	var ret error
-	for _, f := range b.shutdown {
-		err := f()
+	b.logger.Infof("shutting down archive services")
+	errs := make([]string, 0, len(b.shutdown))
+	for i := len(b.shutdown) - 1; i >= 0; i-- {
+		fn := b.shutdown[i]
+		err := fn()
 		if err != nil {
-			ret = err
+			errs = append(errs, err.Error())
 		}
 	}
-	return ret
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, ";"))
+	}
+	return nil
+}
+
+// PingAll backends.
+func (b *Builder) PingAll() error {
+	b.logger.Debugf("PingAll()")
+	errs := make([]string, 0, len(b.backends))
+	for k, v := range b.backends {
+		err := v.Ping()
+		if err != nil {
+			errs = append(errs, fmt.Sprintf("backend '%s': %v", k, err))
+		}
+	}
+	if len(errs) > 0 {
+		retErr := errors.New(strings.Join(errs, ";"))
+		b.logger.Warnf("%s", retErr)
+		return retErr
+	}
+	return nil
 }
 
 // Logger returns logger
 func (b Builder) Logger() yalogi.Logger {
 	return b.logger
-}
-
-// BackendFinder returns backend Finder
-func (b Builder) BackendFinder() archive.BackendFinder {
-	return b.bfinder
 }

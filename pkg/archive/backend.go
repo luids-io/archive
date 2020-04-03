@@ -4,12 +4,7 @@ package archive
 
 // Backend container stores backend information
 type Backend interface {
-	GetClass() string
-	GetSession() interface{}
+	Class() string
+	Session() interface{}
 	Ping() error
-}
-
-// BackendFinder interface for backends
-type BackendFinder interface {
-	FindBackendByID(string) (Backend, bool)
 }

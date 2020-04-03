@@ -13,9 +13,7 @@ import (
 	tlsapi "github.com/luids-io/api/tlsutil/archive"
 	iconfig "github.com/luids-io/archive/internal/config"
 	ifactory "github.com/luids-io/archive/internal/factory"
-	"github.com/luids-io/archive/pkg/archive"
-	"github.com/luids-io/archive/pkg/archive/backend"
-	"github.com/luids-io/archive/pkg/archive/service"
+	"github.com/luids-io/archive/pkg/archive/builder"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
 	"github.com/luids-io/core/utils/serverd"
@@ -44,7 +42,6 @@ func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 }
 
 func createArchiverSrv(msrv *serverd.Manager) (*grpc.Server, error) {
-	//create server
 	cfgServer := cfg.Data("server-archive").(*cconfig.ServerCfg)
 	glis, gsrv, err := cfactory.Server(cfgServer)
 	if err != nil {
@@ -62,19 +59,24 @@ func createArchiverSrv(msrv *serverd.Manager) (*grpc.Server, error) {
 	return gsrv, nil
 }
 
-func createBackends(msrv *serverd.Manager, logger yalogi.Logger) (*backend.Builder, error) {
-	cfgBackend := cfg.Data("backend").(*iconfig.BackendCfg)
-	builder, err := ifactory.BackendBuilder(cfgBackend, logger)
+func createArchivers(msrv *serverd.Manager, logger yalogi.Logger) (*builder.Builder, error) {
+	cfgArchive := cfg.Data("archive").(*iconfig.ArchiverCfg)
+	builder, err := ifactory.ArchiveBuilder(cfgArchive, logger)
 	if err != nil {
 		return nil, err
 	}
 	//create backends
-	err = ifactory.Backends(cfgBackend, builder, logger)
+	err = ifactory.Backends(cfgArchive, builder, logger)
+	if err != nil {
+		return nil, err
+	}
+	//create services
+	err = ifactory.Services(cfgArchive, builder, logger)
 	if err != nil {
 		return nil, err
 	}
 	msrv.Register(serverd.Service{
-		Name:     "backend-builder.service",
+		Name:     "archive-builder.service",
 		Start:    builder.Start,
 		Shutdown: func() { builder.Shutdown() },
 		Ping:     func() error { return builder.PingAll() },
@@ -82,29 +84,10 @@ func createBackends(msrv *serverd.Manager, logger yalogi.Logger) (*backend.Build
 	return builder, nil
 }
 
-func createServices(finder archive.BackendFinder, msrv *serverd.Manager, logger yalogi.Logger) (*service.Builder, error) {
-	cfgService := cfg.Data("service").(*iconfig.ServiceCfg)
-	builder, err := ifactory.ServiceBuilder(cfgService, finder, logger)
-	if err != nil {
-		return nil, err
-	}
-	//create services
-	err = ifactory.Services(cfgService, builder, logger)
-	if err != nil {
-		return nil, err
-	}
-	msrv.Register(serverd.Service{
-		Name:     "service-builder.service",
-		Start:    builder.Start,
-		Shutdown: func() { builder.Shutdown() },
-	})
-	return builder, nil
-}
-
-func createArchiveEventAPI(gsrv *grpc.Server, finder archive.ServiceFinder, logger yalogi.Logger) error {
+func createArchiveEventAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalogi.Logger) error {
 	cfgArchive := cfg.Data("api-archive").(*iconfig.ArchiveAPICfg)
 	if cfgArchive.Event != "" {
-		logger.Infof("creating and registering archive event api service")
+		logger.Infof("registering archive event api service")
 		gsvc, err := ifactory.ArchiveEventAPI(cfgArchive, finder)
 		if err != nil {
 			return err
@@ -115,10 +98,10 @@ func createArchiveEventAPI(gsrv *grpc.Server, finder archive.ServiceFinder, logg
 	return nil
 }
 
-func createArchiveDNSAPI(gsrv *grpc.Server, finder archive.ServiceFinder, logger yalogi.Logger) error {
+func createArchiveDNSAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalogi.Logger) error {
 	cfgArchive := cfg.Data("api-archive").(*iconfig.ArchiveAPICfg)
 	if cfgArchive.DNS != "" {
-		logger.Infof("creating and registering archive dns api service")
+		logger.Infof("registering archive dns api service")
 		gsvc, err := ifactory.ArchiveDNSAPI(cfgArchive, finder)
 		if err != nil {
 			return err
@@ -129,10 +112,10 @@ func createArchiveDNSAPI(gsrv *grpc.Server, finder archive.ServiceFinder, logger
 	return nil
 }
 
-func createArchiveTLSAPI(gsrv *grpc.Server, finder archive.ServiceFinder, logger yalogi.Logger) error {
+func createArchiveTLSAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalogi.Logger) error {
 	cfgArchive := cfg.Data("api-archive").(*iconfig.ArchiveAPICfg)
 	if cfgArchive.TLS != "" {
-		logger.Infof("creating and registering archive tls api service")
+		logger.Infof("registering archive tls api service")
 		gsvc, err := ifactory.ArchiveTLSAPI(cfgArchive, finder)
 		if err != nil {
 			return err

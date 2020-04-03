@@ -11,13 +11,14 @@ import (
 	tlsapi "github.com/luids-io/api/tlsutil/archive"
 	"github.com/luids-io/archive/internal/config"
 	"github.com/luids-io/archive/pkg/archive"
+	"github.com/luids-io/archive/pkg/archive/builder"
 	"github.com/luids-io/core/dnsutil"
 	"github.com/luids-io/core/event"
 	"github.com/luids-io/core/tlsutil"
 )
 
 // ArchiveEventAPI creates grpc service
-func ArchiveEventAPI(cfg *config.ArchiveAPICfg, finder archive.ServiceFinder) (*eventapi.Service, error) {
+func ArchiveEventAPI(cfg *config.ArchiveAPICfg, finder *builder.Builder) (*eventapi.Service, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
@@ -34,7 +35,7 @@ func ArchiveEventAPI(cfg *config.ArchiveAPICfg, finder archive.ServiceFinder) (*
 }
 
 // ArchiveDNSAPI creates grpc service
-func ArchiveDNSAPI(cfg *config.ArchiveAPICfg, finder archive.ServiceFinder) (*dnsapi.Service, error) {
+func ArchiveDNSAPI(cfg *config.ArchiveAPICfg, finder *builder.Builder) (*dnsapi.Service, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
@@ -51,7 +52,7 @@ func ArchiveDNSAPI(cfg *config.ArchiveAPICfg, finder archive.ServiceFinder) (*dn
 }
 
 // ArchiveTLSAPI creates grpc service
-func ArchiveTLSAPI(cfg *config.ArchiveAPICfg, finder archive.ServiceFinder) (*tlsapi.Service, error) {
+func ArchiveTLSAPI(cfg *config.ArchiveAPICfg, finder *builder.Builder) (*tlsapi.Service, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
@@ -67,11 +68,11 @@ func ArchiveTLSAPI(cfg *config.ArchiveAPICfg, finder archive.ServiceFinder) (*tl
 	return tlsapi.NewService(c), nil
 }
 
-func getArchiveService(name string, api archive.API, finder archive.ServiceFinder) (archive.Service, error) {
+func getArchiveService(name string, api archive.API, finder *builder.Builder) (archive.Service, error) {
 	if name == "" {
 		return nil, errors.New("service id is empty")
 	}
-	svc, ok := finder.FindServiceByID(name)
+	svc, ok := finder.Service(name)
 	if !ok {
 		return nil, fmt.Errorf("can't find service with id '%s'", name)
 	}

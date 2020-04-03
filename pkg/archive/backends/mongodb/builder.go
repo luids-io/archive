@@ -9,12 +9,12 @@ import (
 	"github.com/globalsign/mgo"
 
 	"github.com/luids-io/archive/pkg/archive"
-	"github.com/luids-io/archive/pkg/archive/backend"
+	"github.com/luids-io/archive/pkg/archive/builder"
 )
 
 // Builder returns a builder function
-func Builder() backend.BuildFn {
-	return func(b *backend.Builder, cfg backend.Definition) (archive.Backend, error) {
+func Builder() builder.BuildBackendFn {
+	return func(b *builder.Builder, cfg builder.BackendDef) (archive.Backend, error) {
 		if cfg.URL == "" {
 			return nil, errors.New("'url' is required")
 		}
@@ -38,5 +38,5 @@ const (
 )
 
 func init() {
-	backend.RegisterBuilder(BackendClass, Builder())
+	builder.RegisterBackendBuilder(BackendClass, Builder())
 }

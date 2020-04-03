@@ -11,11 +11,11 @@ type mdbBackend struct {
 	session *mgo.Session
 }
 
-func (b *mdbBackend) GetClass() string {
+func (b *mdbBackend) Class() string {
 	return BackendClass
 }
 
-func (b *mdbBackend) GetSession() interface{} {
+func (b *mdbBackend) Session() interface{} {
 	return b.session
 }
 

@@ -351,10 +351,12 @@ create_service_config() {
 	if [ ! -f $ETC_DIR/$NAME/luarchive.toml ]; then
 		log "creating $ETC_DIR/$NAME/luarchive.toml"
 		{ cat > $ETC_DIR/$NAME/luarchive.toml <<EOF
-[backend]
+[archive]
+
+[archive.backend]
 files      = [ "/etc/luids/archive/backends.json" ]
 
-[service]
+[archive.service]
 files      = [ "/etc/luids/archive/services.json" ]
 
 [api-archive]

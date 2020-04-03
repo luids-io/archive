@@ -14,11 +14,6 @@ const (
 
 // Service interface for archive services
 type Service interface {
-	GetClass() string
+	Class() string
 	Implements() []API
-}
-
-// ServiceFinder interface for services
-type ServiceFinder interface {
-	FindServiceByID(string) (Service, bool)
 }

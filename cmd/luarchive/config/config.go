@@ -18,16 +18,10 @@ func Default(program string) *goconfig.Config {
 			Data:     &iconfig.ArchiveAPICfg{},
 		},
 		goconfig.Section{
-			Name:     "service",
+			Name:     "archive",
 			Required: true,
 			Short:    false,
-			Data:     &iconfig.ServiceCfg{},
-		},
-		goconfig.Section{
-			Name:     "backend",
-			Required: false,
-			Short:    false,
-			Data:     &iconfig.BackendCfg{},
+			Data:     &iconfig.ArchiverCfg{},
 		},
 		goconfig.Section{
 			Name:     "server-archive",

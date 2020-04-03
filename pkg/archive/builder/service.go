@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package service
+package builder
 
 import (
 	"encoding/json"
@@ -11,11 +11,11 @@ import (
 	"github.com/luids-io/archive/pkg/archive"
 )
 
-// BuildFn defines a function that constructs a Service
-type BuildFn func(b *Builder, def Definition) (archive.Service, error)
+// BuildServiceFn defines a function that constructs a Service
+type BuildServiceFn func(b *Builder, def ServiceDef) (archive.Service, error)
 
-// Definition stores configuration definition of services
-type Definition struct {
+// ServiceDef stores configuration definition of services
+type ServiceDef struct {
 	// ID must exist and be unique
 	ID string `json:"id"`
 	// Class stores the services class
@@ -30,9 +30,9 @@ type Definition struct {
 	Opts map[string]interface{} `json:"opts,omitempty"`
 }
 
-// DefsFromFile creates a slice from a file in json format.
-func DefsFromFile(path string) ([]Definition, error) {
-	var defs []Definition
+// ServiceDefsFromFile creates a slice from a file in json format.
+func ServiceDefsFromFile(path string) ([]ServiceDef, error) {
+	var defs []ServiceDef
 	f, err := os.Open(path)
 	defer f.Close()
 	if err != nil {
@@ -49,13 +49,13 @@ func DefsFromFile(path string) ([]Definition, error) {
 	return defs, nil
 }
 
-// RegisterBuilder registers a builder
-func RegisterBuilder(class string, builder BuildFn) {
-	registryBuilder[class] = builder
+// RegisterServiceBuilder registers a builder
+func RegisterServiceBuilder(class string, builder BuildServiceFn) {
+	regServiceBuilder[class] = builder
 }
 
-var registryBuilder map[string]BuildFn
+var regServiceBuilder map[string]BuildServiceFn
 
 func init() {
-	registryBuilder = make(map[string]BuildFn)
+	regServiceBuilder = make(map[string]BuildServiceFn)
 }

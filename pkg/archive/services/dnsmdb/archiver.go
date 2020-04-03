@@ -206,8 +206,8 @@ func (a *Archiver) getCollection(name string) *mgo.Collection {
 	return a.session.DB(a.database).C(name)
 }
 
-// GetClass implements archive.Service interface
-func (a *Archiver) GetClass() string {
+// Class implements archive.Service interface
+func (a *Archiver) Class() string {
 	return ServiceClass
 }
 

@@ -75,11 +75,7 @@ func main() {
 	msrv := serverd.New(serverd.SetLogger(logger))
 
 	// create backends and archive services
-	backends, err := createBackends(msrv, logger)
-	if err != nil {
-		logger.Fatalf("couldn't create backends: %v", err)
-	}
-	services, err := createServices(backends, msrv, logger)
+	archivers, err := createArchivers(msrv, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create backends: %v", err)
 	}
@@ -95,15 +91,15 @@ func main() {
 		logger.Fatalf("couldn't create grpc server: %v", err)
 	}
 	// create grpc services
-	err = createArchiveEventAPI(gsrv, services, logger)
+	err = createArchiveEventAPI(gsrv, archivers, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create eventapi service: %v", err)
 	}
-	err = createArchiveDNSAPI(gsrv, services, logger)
+	err = createArchiveDNSAPI(gsrv, archivers, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create dnsapi service: %v", err)
 	}
-	err = createArchiveTLSAPI(gsrv, services, logger)
+	err = createArchiveTLSAPI(gsrv, archivers, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create tlsapi service: %v", err)
 	}

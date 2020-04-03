@@ -9,27 +9,27 @@ import (
 	"github.com/globalsign/mgo"
 
 	"github.com/luids-io/archive/pkg/archive"
-	"github.com/luids-io/archive/pkg/archive/backend/mongodb"
-	"github.com/luids-io/archive/pkg/archive/service"
+	"github.com/luids-io/archive/pkg/archive/backends/mongodb"
+	"github.com/luids-io/archive/pkg/archive/builder"
 	"github.com/luids-io/core/utils/option"
 )
 
 // Builder returns a builder function
-func Builder() service.BuildFn {
-	return func(b *service.Builder, cfg service.Definition) (archive.Service, error) {
+func Builder() builder.BuildServiceFn {
+	return func(b *builder.Builder, cfg builder.ServiceDef) (archive.Service, error) {
 		if cfg.Backend == "" {
 			return nil, errors.New("'backend' is required")
 		}
 		//get mongodb backend
-		back, ok := b.BackendFinder().FindBackendByID(cfg.Backend)
+		back, ok := b.Backend(cfg.Backend)
 		if !ok {
 			return nil, errors.New("'backend' not found")
 		}
-		if back.GetClass() != mongodb.BackendClass {
-			return nil, fmt.Errorf("'backend' class '%s' not suported in service", back.GetClass())
+		if back.Class() != mongodb.BackendClass {
+			return nil, fmt.Errorf("'backend' class '%s' not suported in service", back.Class())
 		}
 		// get session from backend container
-		session, ok := back.GetSession().(*mgo.Session)
+		session, ok := back.Session().(*mgo.Session)
 		if !ok {
 			return nil, errors.New("'backend' not found")
 		}
@@ -74,5 +74,5 @@ const (
 )
 
 func init() {
-	service.RegisterBuilder(ServiceClass, Builder())
+	builder.RegisterServiceBuilder(ServiceClass, Builder())
 }
