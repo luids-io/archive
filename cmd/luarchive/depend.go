@@ -41,8 +41,8 @@ func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 	return nil
 }
 
-func createArchiverSrv(msrv *serverd.Manager) (*grpc.Server, error) {
-	cfgServer := cfg.Data("server-archive").(*cconfig.ServerCfg)
+func createServer(msrv *serverd.Manager) (*grpc.Server, error) {
+	cfgServer := cfg.Data("server").(*cconfig.ServerCfg)
 	glis, gsrv, err := cfactory.Server(cfgServer)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func createArchivers(msrv *serverd.Manager, logger yalogi.Logger) (*builder.Buil
 }
 
 func createArchiveEventAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalogi.Logger) error {
-	cfgArchive := cfg.Data("api-archive").(*iconfig.ArchiveAPICfg)
+	cfgArchive := cfg.Data("archive.api").(*iconfig.ArchiveAPICfg)
 	if cfgArchive.Event != "" {
 		logger.Infof("registering archive event api service")
 		gsvc, err := ifactory.ArchiveEventAPI(cfgArchive, finder)
@@ -99,7 +99,7 @@ func createArchiveEventAPI(gsrv *grpc.Server, finder *builder.Builder, logger ya
 }
 
 func createArchiveDNSAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalogi.Logger) error {
-	cfgArchive := cfg.Data("api-archive").(*iconfig.ArchiveAPICfg)
+	cfgArchive := cfg.Data("archive.api").(*iconfig.ArchiveAPICfg)
 	if cfgArchive.DNS != "" {
 		logger.Infof("registering archive dns api service")
 		gsvc, err := ifactory.ArchiveDNSAPI(cfgArchive, finder)
@@ -113,7 +113,7 @@ func createArchiveDNSAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalo
 }
 
 func createArchiveTLSAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalogi.Logger) error {
-	cfgArchive := cfg.Data("api-archive").(*iconfig.ArchiveAPICfg)
+	cfgArchive := cfg.Data("archive.api").(*iconfig.ArchiveAPICfg)
 	if cfgArchive.TLS != "" {
 		logger.Infof("registering archive tls api service")
 		gsvc, err := ifactory.ArchiveTLSAPI(cfgArchive, finder)

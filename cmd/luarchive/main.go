@@ -86,7 +86,7 @@ func main() {
 	}
 
 	// create grpc server
-	gsrv, err := createArchiverSrv(msrv)
+	gsrv, err := createServer(msrv)
 	if err != nil {
 		logger.Fatalf("couldn't create grpc server: %v", err)
 	}

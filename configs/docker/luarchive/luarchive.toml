@@ -1,15 +1,14 @@
-[api-archive]
-event   = "event"
-dns     = "dns"
-tls     = "tls"
-
-[archive]
-
 [archive.backend]
 files      = [ "/etc/luids/archive/backends.json" ]
 
 [archive.service]
 files      = [ "/etc/luids/archive/services.json" ]
 
-[server-archive]
+[archive.api]
+event   = "event"
+dns     = "dns"
+tls     = "tls"
+
+
+[server]
 listenuri  = "tcp://0.0.0.0:5821"

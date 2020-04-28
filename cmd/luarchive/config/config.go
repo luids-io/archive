@@ -12,19 +12,19 @@ import (
 func Default(program string) *goconfig.Config {
 	cfg, err := goconfig.New(program,
 		goconfig.Section{
-			Name:     "api-archive",
-			Required: true,
-			Short:    false,
-			Data:     &iconfig.ArchiveAPICfg{},
-		},
-		goconfig.Section{
 			Name:     "archive",
 			Required: true,
 			Short:    false,
 			Data:     &iconfig.ArchiverCfg{},
 		},
 		goconfig.Section{
-			Name:     "server-archive",
+			Name:     "archive.api",
+			Required: true,
+			Short:    false,
+			Data:     &iconfig.ArchiveAPICfg{},
+		},
+		goconfig.Section{
+			Name:     "server",
 			Required: true,
 			Short:    true,
 			Data: &cconfig.ServerCfg{
