@@ -85,8 +85,8 @@ func createArchivers(msrv *serverd.Manager, logger yalogi.Logger) (*builder.Buil
 }
 
 func createArchiveEventAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalogi.Logger) error {
-	cfgArchive := cfg.Data("archive.api").(*iconfig.ArchiveAPICfg)
-	if cfgArchive.Event != "" {
+	cfgArchive := cfg.Data("archive.api.event").(*iconfig.ArchiveEventAPICfg)
+	if cfgArchive.Enable {
 		logger.Infof("registering archive event api service")
 		gsvc, err := ifactory.ArchiveEventAPI(cfgArchive, finder)
 		if err != nil {
@@ -99,8 +99,8 @@ func createArchiveEventAPI(gsrv *grpc.Server, finder *builder.Builder, logger ya
 }
 
 func createArchiveDNSAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalogi.Logger) error {
-	cfgArchive := cfg.Data("archive.api").(*iconfig.ArchiveAPICfg)
-	if cfgArchive.DNS != "" {
+	cfgArchive := cfg.Data("archive.api.dns").(*iconfig.ArchiveDNSAPICfg)
+	if cfgArchive.Enable {
 		logger.Infof("registering archive dns api service")
 		gsvc, err := ifactory.ArchiveDNSAPI(cfgArchive, finder)
 		if err != nil {
@@ -113,8 +113,8 @@ func createArchiveDNSAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalo
 }
 
 func createArchiveTLSAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalogi.Logger) error {
-	cfgArchive := cfg.Data("archive.api").(*iconfig.ArchiveAPICfg)
-	if cfgArchive.TLS != "" {
+	cfgArchive := cfg.Data("archive.api.tls").(*iconfig.ArchiveTLSAPICfg)
+	if cfgArchive.Enable {
 		logger.Infof("registering archive tls api service")
 		gsvc, err := ifactory.ArchiveTLSAPI(cfgArchive, finder)
 		if err != nil {

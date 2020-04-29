@@ -18,52 +18,61 @@ import (
 )
 
 // ArchiveEventAPI creates grpc service
-func ArchiveEventAPI(cfg *config.ArchiveAPICfg, finder *builder.Builder) (*eventapi.Service, error) {
+func ArchiveEventAPI(cfg *config.ArchiveEventAPICfg, finder *builder.Builder) (*eventapi.Service, error) {
+	if !cfg.Enable {
+		return nil, errors.New("event api disabled")
+	}
 	err := cfg.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
 	}
-	svc, err := getArchiveService(cfg.Event, archive.EventAPI, finder)
+	svc, err := getArchiveService(cfg.Service, archive.EventAPI, finder)
 	if err != nil {
 		return nil, fmt.Errorf("'eventapi' service: %v", err)
 	}
 	c, ok := svc.(event.Archiver)
 	if !ok {
-		return nil, fmt.Errorf("can't cast id '%s' to event.Archiver", cfg.Event)
+		return nil, fmt.Errorf("can't cast id '%s' to event.Archiver", cfg.Service)
 	}
 	return eventapi.NewService(c), nil
 }
 
 // ArchiveDNSAPI creates grpc service
-func ArchiveDNSAPI(cfg *config.ArchiveAPICfg, finder *builder.Builder) (*dnsapi.Service, error) {
+func ArchiveDNSAPI(cfg *config.ArchiveDNSAPICfg, finder *builder.Builder) (*dnsapi.Service, error) {
+	if !cfg.Enable {
+		return nil, errors.New("event api disabled")
+	}
 	err := cfg.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
 	}
-	svc, err := getArchiveService(cfg.DNS, archive.DNSAPI, finder)
+	svc, err := getArchiveService(cfg.Service, archive.DNSAPI, finder)
 	if err != nil {
 		return nil, fmt.Errorf("'dnsapi' service: %v", err)
 	}
 	c, ok := svc.(dnsutil.Archiver)
 	if !ok {
-		return nil, fmt.Errorf("can't cast id '%s' to dnsutil.Archiver", cfg.DNS)
+		return nil, fmt.Errorf("can't cast id '%s' to dnsutil.Archiver", cfg.Service)
 	}
 	return dnsapi.NewService(c), nil
 }
 
 // ArchiveTLSAPI creates grpc service
-func ArchiveTLSAPI(cfg *config.ArchiveAPICfg, finder *builder.Builder) (*tlsapi.Service, error) {
+func ArchiveTLSAPI(cfg *config.ArchiveTLSAPICfg, finder *builder.Builder) (*tlsapi.Service, error) {
+	if !cfg.Enable {
+		return nil, errors.New("event api disabled")
+	}
 	err := cfg.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
 	}
-	svc, err := getArchiveService(cfg.TLS, archive.TLSAPI, finder)
+	svc, err := getArchiveService(cfg.Service, archive.TLSAPI, finder)
 	if err != nil {
 		return nil, fmt.Errorf("'tlsapi' service: %v", err)
 	}
 	c, ok := svc.(tlsutil.Archiver)
 	if !ok {
-		return nil, fmt.Errorf("can't cast id '%s' to tlsutil.Archiver", cfg.TLS)
+		return nil, fmt.Errorf("can't cast id '%s' to tlsutil.Archiver", cfg.Service)
 	}
 	return tlsapi.NewService(c), nil
 }

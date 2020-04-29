@@ -18,10 +18,22 @@ func Default(program string) *goconfig.Config {
 			Data:     &iconfig.ArchiverCfg{},
 		},
 		goconfig.Section{
-			Name:     "archive.api",
+			Name:     "archive.api.event",
 			Required: true,
 			Short:    false,
-			Data:     &iconfig.ArchiveAPICfg{},
+			Data:     &iconfig.ArchiveEventAPICfg{},
+		},
+		goconfig.Section{
+			Name:     "archive.api.dns",
+			Required: true,
+			Short:    false,
+			Data:     &iconfig.ArchiveDNSAPICfg{},
+		},
+		goconfig.Section{
+			Name:     "archive.api.tls",
+			Required: true,
+			Short:    false,
+			Data:     &iconfig.ArchiveTLSAPICfg{},
 		},
 		goconfig.Section{
 			Name:     "server",

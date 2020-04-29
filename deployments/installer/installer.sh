@@ -357,10 +357,17 @@ files      = [ "/etc/luids/archive/backends.json" ]
 [archive.service]
 files      = [ "/etc/luids/archive/services.json" ]
 
-#[archive.api]
-#event   = "event"
-#dns     = "dns"
-#tls     = "tls"
+#[archive.api.event]
+#enable  = true
+#service = "event"
+
+#[archive.api.dns]
+#enable  = true
+#service = "dns"
+
+#[archive.api.tls]
+#enable  = true
+#service = "tls"
 EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
