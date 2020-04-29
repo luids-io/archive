@@ -3,6 +3,8 @@
 package config
 
 import (
+	"errors"
+
 	iconfig "github.com/luids-io/archive/internal/config"
 	cconfig "github.com/luids-io/common/config"
 	"github.com/luids-io/core/utils/goconfig"
@@ -19,19 +21,19 @@ func Default(program string) *goconfig.Config {
 		},
 		goconfig.Section{
 			Name:     "archive.api.event",
-			Required: true,
+			Required: false,
 			Short:    false,
 			Data:     &iconfig.ArchiveEventAPICfg{},
 		},
 		goconfig.Section{
 			Name:     "archive.api.dns",
-			Required: true,
+			Required: false,
 			Short:    false,
 			Data:     &iconfig.ArchiveDNSAPICfg{},
 		},
 		goconfig.Section{
 			Name:     "archive.api.tls",
-			Required: true,
+			Required: false,
 			Short:    false,
 			Data:     &iconfig.ArchiveTLSAPICfg{},
 		},
@@ -59,5 +61,15 @@ func Default(program string) *goconfig.Config {
 	if err != nil {
 		panic(err)
 	}
+	// add aditional validators
+	cfg.AddValidator(func(cfg *goconfig.Config) error {
+		noEvent := cfg.Data("archive.api.event").Empty()
+		noDNS := cfg.Data("archive.api.dns").Empty()
+		noTLS := cfg.Data("archive.api.tls").Empty()
+		if noEvent && noDNS && noTLS {
+			return errors.New("'archive.api' section is required")
+		}
+		return nil
+	})
 	return cfg
 }
