@@ -19,7 +19,7 @@ BUILDLDFLAGS=-ldflags '-s -w -X main.Version=$(VERSION) -X main.Revision=$(REVIS
 # Print output
 WHALE = "+"
 
-.PHONY: all binaries clean
+.PHONY: all binaries clean docker
 all: binaries
 
 
@@ -41,6 +41,10 @@ clean:
 	@echo "$(WHALE) $@"
 	@rm -f $(BINARIES)
 	@rmdir bin
+
+docker:
+	@echo "$(WHALE) $@"
+	docker build -t luarchive -f Dockerfile.luarchive .
 
 ## Targets for Makefile.release
 .PHONY: release

@@ -4,7 +4,7 @@
         "class": "eventmdb",
         "backend": "mongo1",
         "opts": {
-            "dbname": "eventdb"
+            "dbname": "luidsdb"
         }
     },
     {
@@ -12,7 +12,7 @@
         "class": "dnsmdb",
         "backend": "mongo1",
         "opts": {
-            "dbname": "dnsdb"
+            "dbname": "luidsdb"
         }
     },
     {
@@ -20,7 +20,7 @@
         "class": "tlsmdb",
         "backend": "mongo1",
         "opts": {
-            "dbname": "tlsdb"
+            "dbname": "luidsdb"
         }
     }
 ]
