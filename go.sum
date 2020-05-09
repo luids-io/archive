@@ -113,6 +113,8 @@ github.com/luids-io/api v0.0.0-20200409115054-1cc26cea9441 h1:7elpI9UPRQTy1gl6+o
 github.com/luids-io/api v0.0.0-20200409115054-1cc26cea9441/go.mod h1:4IkMQVmc9BMnlA7YXTYpSwDn9+Y+C51cwXEdLqe5SVA=
 github.com/luids-io/api v0.0.0-20200420101700-7ef915904345 h1:ByfFFHDfhTNdhT6EecE1u6W/MbwpQBmt91446X2M1XQ=
 github.com/luids-io/api v0.0.0-20200420101700-7ef915904345/go.mod h1:4IkMQVmc9BMnlA7YXTYpSwDn9+Y+C51cwXEdLqe5SVA=
+github.com/luids-io/api v0.0.0-20200509163424-15fc234c8cf5 h1:6QPNodanG6slw9MYibS6wiUnQjfyTJ7Mcycml/cAiTg=
+github.com/luids-io/api v0.0.0-20200509163424-15fc234c8cf5/go.mod h1:4IkMQVmc9BMnlA7YXTYpSwDn9+Y+C51cwXEdLqe5SVA=
 github.com/luids-io/common v0.0.0-20191024080137-0797e9b9ebcb h1:JEzcFv81KXcTJS1utb6wnom6JnNWXF44DQDXpt2u+AI=
 github.com/luids-io/common v0.0.0-20191024080137-0797e9b9ebcb/go.mod h1:C0Mh01EMI67r4pgimVfxI60IrReIGx8cfWZi9dSq1pE=
 github.com/luids-io/common v0.0.0-20191121175931-c4528d0c1353 h1:cYP4+hSFDhrpf5SqZ21cWoXlOB2Jl7/BoPxH1gPtTSM=
@@ -123,6 +125,8 @@ github.com/luids-io/common v0.0.0-20200331115700-6784dbcf9dfb h1:5QmyaZP8l7aUc5d
 github.com/luids-io/common v0.0.0-20200331115700-6784dbcf9dfb/go.mod h1:C0Mh01EMI67r4pgimVfxI60IrReIGx8cfWZi9dSq1pE=
 github.com/luids-io/common v0.0.0-20200402071902-620ef2e970dc h1:cvlAa8mBN2FIuzhEwLbhNLC4GhN5JBo9xi/K7VVCu9Y=
 github.com/luids-io/common v0.0.0-20200402071902-620ef2e970dc/go.mod h1:C0Mh01EMI67r4pgimVfxI60IrReIGx8cfWZi9dSq1pE=
+github.com/luids-io/common v0.0.0-20200424154549-b9f88f4b7ee2 h1:BIx4/14eqquVaXPqZTXOi/2qDGbB6DMaxiFpJp9UnIE=
+github.com/luids-io/common v0.0.0-20200424154549-b9f88f4b7ee2/go.mod h1:C0Mh01EMI67r4pgimVfxI60IrReIGx8cfWZi9dSq1pE=
 github.com/luids-io/core v0.0.0-20191030185348-86eacf71f53f h1:rqhbZaDxQnh7hseQJy3ltn2gxSWJIwbc2PWa/h7BiVg=
 github.com/luids-io/core v0.0.0-20191030185348-86eacf71f53f/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luids-io/core v0.0.0-20191030194932-7592cd445b5c h1:cnKrALdt+o1BJ6Bx95oGy3MFC4SflpBYvc1HnsRP2FM=
@@ -145,6 +149,8 @@ github.com/luids-io/core v0.0.0-20200410161913-23dce32076df h1:lsuB6qsGHNka+PMVm
 github.com/luids-io/core v0.0.0-20200410161913-23dce32076df/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luids-io/core v0.0.0-20200420101533-d062c71ed547 h1:Ds/vLU7HlAM9VO/6T4cTsqq82dprcj6T1E9FsLWsTcs=
 github.com/luids-io/core v0.0.0-20200420101533-d062c71ed547/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20200509163410-705136550520 h1:LXqntxEYSvkzIegVsUcEwpFS5SZ3poEnq4EwvnV2lDs=
+github.com/luids-io/core v0.0.0-20200509163410-705136550520/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luids-io/resolv v0.0.0-20191030192731-b9aadafa639a h1:+Y1iSdRHKJ9/0IjwcDL3WWq4dL+jO7JnkTIOoFqGtns=
 github.com/luids-io/resolv v0.0.0-20191030192731-b9aadafa639a/go.mod h1:Rm//f7OlQx+FRiZBdzFtYik1gRFjWUljwH2kRlNHZGY=
 github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6 h1:/rapm+jySYEgeGoc7aSwv6I4OX2SnMFOTEUopPljTcg=

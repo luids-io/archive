@@ -59,9 +59,7 @@ type options struct {
 	prefix       string
 }
 
-var defaultOptions = options{
-	logger: yalogi.LogNull,
-}
+var defaultOptions = options{logger: yalogi.LogNull}
 
 // SetLogger option allows set a custom logger
 func SetLogger(l yalogi.Logger) Option {
@@ -108,10 +106,14 @@ func (a *Archiver) Start() error {
 // SaveEvent implements event.Archiver interface
 func (a *Archiver) SaveEvent(ctx context.Context, e event.Event) (string, error) {
 	if !a.started {
-		return "", fmt.Errorf("archiver not started")
+		return "", event.ErrUnavailable
 	}
 	err := a.getCollection(EventColName).Insert(e)
-	return e.ID, err
+	if err != nil {
+		a.logger.Warnf("saving event '%s': %v", e.ID, err)
+		return "", event.ErrInternal
+	}
+	return e.ID, nil
 }
 
 // Shutdown closes the conection
