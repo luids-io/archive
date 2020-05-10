@@ -8,16 +8,16 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc"
 
-	dnsapi "github.com/luids-io/api/dnsutil/archive"
-	eventapi "github.com/luids-io/api/event/archive"
-	tlsapi "github.com/luids-io/api/tlsutil/archive"
+	dnsapi "github.com/luids-io/api/dnsutil/grpc/archive"
+	eventapi "github.com/luids-io/api/event/grpc/archive"
+	tlsapi "github.com/luids-io/api/tlsutil/grpc/archive"
 	iconfig "github.com/luids-io/archive/internal/config"
 	ifactory "github.com/luids-io/archive/internal/factory"
 	"github.com/luids-io/archive/pkg/archive/builder"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
-	"github.com/luids-io/core/utils/serverd"
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/core/serverd"
+	"github.com/luids-io/core/yalogi"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {

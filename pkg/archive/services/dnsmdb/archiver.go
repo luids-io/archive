@@ -12,10 +12,10 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 
+	"github.com/luids-io/api/dnsutil"
 	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luids-io/archive/pkg/mongoutil"
-	"github.com/luids-io/core/dnsutil"
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/core/yalogi"
 )
 
 // Collection names

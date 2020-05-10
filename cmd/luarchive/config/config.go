@@ -7,7 +7,7 @@ import (
 
 	iconfig "github.com/luids-io/archive/internal/config"
 	cconfig "github.com/luids-io/common/config"
-	"github.com/luids-io/core/utils/goconfig"
+	"github.com/luids-io/core/goconfig"
 )
 
 // Default returns the default configuration

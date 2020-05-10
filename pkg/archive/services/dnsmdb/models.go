@@ -3,7 +3,7 @@ package dnsmdb
 import (
 	"time"
 
-	"github.com/luids-io/core/dnsutil"
+	"github.com/luids-io/api/dnsutil"
 )
 
 type mdbResolvData struct {

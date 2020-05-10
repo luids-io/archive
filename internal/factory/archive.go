@@ -8,7 +8,7 @@ import (
 	"github.com/luids-io/archive/internal/config"
 	"github.com/luids-io/archive/pkg/archive/builder"
 	"github.com/luids-io/common/util"
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/core/yalogi"
 )
 
 // ArchiveBuilder is a factory

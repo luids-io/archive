@@ -10,9 +10,9 @@ import (
 
 	"github.com/globalsign/mgo"
 
+	"github.com/luids-io/api/event"
 	"github.com/luids-io/archive/pkg/archive"
-	"github.com/luids-io/core/event"
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/core/yalogi"
 )
 
 // Collection names

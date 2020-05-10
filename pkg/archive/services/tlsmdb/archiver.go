@@ -13,10 +13,10 @@ import (
 	"github.com/globalsign/mgo/bson"
 	cache "github.com/patrickmn/go-cache"
 
+	"github.com/luids-io/api/tlsutil"
 	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luids-io/archive/pkg/mongoutil"
-	"github.com/luids-io/core/tlsutil"
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/core/yalogi"
 )
 
 // Collection names

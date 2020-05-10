@@ -6,15 +6,15 @@ import (
 	"errors"
 	"fmt"
 
-	dnsapi "github.com/luids-io/api/dnsutil/archive"
-	eventapi "github.com/luids-io/api/event/archive"
-	tlsapi "github.com/luids-io/api/tlsutil/archive"
+	"github.com/luids-io/api/dnsutil"
+	dnsapi "github.com/luids-io/api/dnsutil/grpc/archive"
+	"github.com/luids-io/api/event"
+	eventapi "github.com/luids-io/api/event/grpc/archive"
+	"github.com/luids-io/api/tlsutil"
+	tlsapi "github.com/luids-io/api/tlsutil/grpc/archive"
 	"github.com/luids-io/archive/internal/config"
 	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luids-io/archive/pkg/archive/builder"
-	"github.com/luids-io/core/dnsutil"
-	"github.com/luids-io/core/event"
-	"github.com/luids-io/core/tlsutil"
 )
 
 // ArchiveEventAPI creates grpc service

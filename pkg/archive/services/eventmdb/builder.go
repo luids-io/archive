@@ -11,7 +11,7 @@ import (
 	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luids-io/archive/pkg/archive/backends/mongodb"
 	"github.com/luids-io/archive/pkg/archive/builder"
-	"github.com/luids-io/core/utils/option"
+	"github.com/luids-io/core/option"
 )
 
 // Builder returns a builder function
