@@ -132,11 +132,15 @@ func (a *Archiver) Start() error {
 // SaveResolv implements dnsutil.Archiver interface
 func (a *Archiver) SaveResolv(ctx context.Context, r dnsutil.ResolvData) (string, error) {
 	if !a.started {
-		return "", fmt.Errorf("archiver not started")
+		return "", dnsutil.ErrUnavailable
 	}
 	r.ID = bson.NewObjectId().String()
 	err := a.bulkResolvs.Insert(toMongoData(r))
-	return r.ID, err
+	if err != nil {
+		a.logger.Warnf("saving resolv '%s': %v", r.Name, err)
+		return "", dnsutil.ErrInternal
+	}
+	return r.ID, nil
 }
 
 // Shutdown closes the conection
