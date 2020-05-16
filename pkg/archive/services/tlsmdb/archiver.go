@@ -153,15 +153,20 @@ func (a *Archiver) Start() error {
 // SaveConnection implements tlsutil.Archiver interface
 func (a *Archiver) SaveConnection(ctx context.Context, cn *tlsutil.ConnectionData) (string, error) {
 	if !a.started {
-		return "", fmt.Errorf("archiver not started")
+		return "", tlsutil.ErrUnavailable
 	}
-	return cn.ID, a.bulkConns.Insert(cn)
+	err := a.bulkConns.Insert(cn)
+	if err != nil {
+		a.logger.Warnf("saving connection '%s': %v", cn.ID, err)
+		return "", tlsutil.ErrInternal
+	}
+	return cn.ID, nil
 }
 
 // SaveCertificate implements tlsutil.Archiver interface
 func (a *Archiver) SaveCertificate(ctx context.Context, cert *tlsutil.CertificateData) (string, error) {
 	if !a.started {
-		return "", fmt.Errorf("archiver not started")
+		return "", tlsutil.ErrUnavailable
 	}
 	// check in cache
 	ccert, ok := a.cacheCerts.Get(cert.Digest)
@@ -175,7 +180,7 @@ func (a *Archiver) SaveCertificate(ctx context.Context, cert *tlsutil.Certificat
 		Find(bson.M{"digest": cert.Digest}).One(&dbcert)
 	if err != nil && err != mgo.ErrNotFound {
 		a.logger.Errorf("finding cert digest: %v", err)
-		return "", err
+		return "", tlsutil.ErrInternal
 	} else if err == nil {
 		//exists, but not in cache-> add to cache
 		a.cacheCerts.Add(cert.Digest, &dbcert, cache.DefaultExpiration)
@@ -183,15 +188,25 @@ func (a *Archiver) SaveCertificate(ctx context.Context, cert *tlsutil.Certificat
 	}
 	// don't exist, add to cache
 	a.cacheCerts.Add(cert.Digest, cert, cache.DefaultExpiration)
-	return cert.ID, a.getCollection(CertificateColName).Insert(cert)
+	err = a.getCollection(CertificateColName).Insert(cert)
+	if err != nil {
+		a.logger.Warnf("saving cert '%s': %v", cert.Digest, err)
+		return "", tlsutil.ErrInternal
+	}
+	return cert.ID, nil
 }
 
 // StoreRecord implements tlsutil.Archiver interface
 func (a *Archiver) StoreRecord(r *tlsutil.RecordData) error {
 	if !a.started {
-		return fmt.Errorf("archiver not started")
+		return tlsutil.ErrUnavailable
 	}
-	return a.bulkRecords.Insert(r)
+	err := a.bulkRecords.Insert(r)
+	if err != nil {
+		a.logger.Warnf("saving record: %v", err)
+		return tlsutil.ErrInternal
+	}
+	return nil
 }
 
 // Shutdown closes the conection
