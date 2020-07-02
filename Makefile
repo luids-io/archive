@@ -57,17 +57,7 @@ release:
 
 # tests
 .PHONY: test test-core test-plugin
-test: test-core test-plugin
+
+test:
 	@echo "$(WHALE) $@"
-
-
-test-core:
-	@echo "$(WHALE) $@"
-	( cd pkg/builder ; GO111MODULE=on go test -v -race ./...)
-
-
-test-plugin:
-	@echo "$(WHALE) $@"
-	( cd pkg/components ; GO111MODULE=on go test -v -race ./... )
-	( cd pkg/wrappers ; GO111MODULE=on go test -v -race ./... )
-
+	( cd pkg/archive ; GO111MODULE=on go test -v -race ./...)
