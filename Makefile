@@ -56,7 +56,7 @@ release:
 		    go build $(BUILDOPTS) ${BUILDLDFLAGS} -o $(BINARY) ./cmd/$(COMMAND)
 
 # tests
-.PHONY: test test-core test-plugin
+.PHONY: test
 
 test:
 	@echo "$(WHALE) $@"
