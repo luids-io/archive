@@ -357,15 +357,15 @@ files      = [ "/etc/luids/archive/backends.json" ]
 [archive.service]
 files      = [ "/etc/luids/archive/services.json" ]
 
-#[archive.api.event]
+#[service.event.archive]
 #enable  = true
 #service = "event"
 
-#[archive.api.dns]
+#[service.dnsutil.archive]
 #enable  = true
 #service = "dns"
 
-#[archive.api.tls]
+#[service.tlsutil.archive]
 #enable  = true
 #service = "tls"
 EOF

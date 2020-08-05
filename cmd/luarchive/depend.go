@@ -33,7 +33,7 @@ func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 			logger.Fatalf("creating health server: %v", err)
 		}
 		msrv.Register(serverd.Service{
-			Name:     "health.server",
+			Name:     fmt.Sprintf("health.[%s]", cfgHealth.ListenURI),
 			Start:    func() error { go health.Serve(hlis); return nil },
 			Shutdown: func() { health.Close() },
 		})
@@ -51,7 +51,7 @@ func createServer(msrv *serverd.Manager) (*grpc.Server, error) {
 		grpc_prometheus.Register(gsrv)
 	}
 	msrv.Register(serverd.Service{
-		Name:     fmt.Sprintf("[%s].server", cfgServer.ListenURI),
+		Name:     fmt.Sprintf("server.[%s]", cfgServer.ListenURI),
 		Start:    func() error { go gsrv.Serve(glis); return nil },
 		Shutdown: gsrv.GracefulStop,
 		Stop:     gsrv.Stop,
@@ -76,7 +76,7 @@ func createArchivers(msrv *serverd.Manager, logger yalogi.Logger) (*builder.Buil
 		return nil, err
 	}
 	msrv.Register(serverd.Service{
-		Name:     "archive-builder.service",
+		Name:     "archive",
 		Start:    builder.Start,
 		Shutdown: func() { builder.Shutdown() },
 		Ping:     func() error { return builder.PingAll() },
@@ -84,44 +84,41 @@ func createArchivers(msrv *serverd.Manager, logger yalogi.Logger) (*builder.Buil
 	return builder, nil
 }
 
-func createArchiveEventAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalogi.Logger) error {
-	cfgArchive := cfg.Data("archive.api.event").(*iconfig.ArchiveEventAPICfg)
+func createArchiveEventAPI(gsrv *grpc.Server, finder *builder.Builder, msrv *serverd.Manager, logger yalogi.Logger) error {
+	cfgArchive := cfg.Data("service.event.archive").(*iconfig.ArchiveEventAPICfg)
 	if cfgArchive.Enable {
-		logger.Infof("registering archive event api service")
-		gsvc, err := ifactory.ArchiveEventAPI(cfgArchive, finder)
+		gsvc, err := ifactory.ArchiveEventAPI(cfgArchive, finder, logger)
 		if err != nil {
 			return err
 		}
 		eventapi.RegisterServer(gsrv, gsvc)
-		return nil
+		msrv.Register(serverd.Service{Name: "service.event.archive"})
 	}
 	return nil
 }
 
-func createArchiveDNSAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalogi.Logger) error {
-	cfgArchive := cfg.Data("archive.api.dns").(*iconfig.ArchiveDNSAPICfg)
+func createArchiveDNSAPI(gsrv *grpc.Server, finder *builder.Builder, msrv *serverd.Manager, logger yalogi.Logger) error {
+	cfgArchive := cfg.Data("service.dnsutil.archive").(*iconfig.ArchiveDNSAPICfg)
 	if cfgArchive.Enable {
-		logger.Infof("registering archive dns api service")
-		gsvc, err := ifactory.ArchiveDNSAPI(cfgArchive, finder)
+		gsvc, err := ifactory.ArchiveDNSAPI(cfgArchive, finder, logger)
 		if err != nil {
 			return err
 		}
 		dnsapi.RegisterServer(gsrv, gsvc)
-		return nil
+		msrv.Register(serverd.Service{Name: "service.dnsutil.archive"})
 	}
 	return nil
 }
 
-func createArchiveTLSAPI(gsrv *grpc.Server, finder *builder.Builder, logger yalogi.Logger) error {
-	cfgArchive := cfg.Data("archive.api.tls").(*iconfig.ArchiveTLSAPICfg)
+func createArchiveTLSAPI(gsrv *grpc.Server, finder *builder.Builder, msrv *serverd.Manager, logger yalogi.Logger) error {
+	cfgArchive := cfg.Data("service.tlsutil.archive").(*iconfig.ArchiveTLSAPICfg)
 	if cfgArchive.Enable {
-		logger.Infof("registering archive tls api service")
-		gsvc, err := ifactory.ArchiveTLSAPI(cfgArchive, finder)
+		gsvc, err := ifactory.ArchiveTLSAPI(cfgArchive, finder, logger)
 		if err != nil {
 			return err
 		}
 		tlsapi.RegisterServer(gsrv, gsvc)
-		return nil
+		msrv.Register(serverd.Service{Name: "service.tlsutil.archive"})
 	}
 	return nil
 }

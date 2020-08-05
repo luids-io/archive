@@ -15,10 +15,11 @@ import (
 	"github.com/luids-io/archive/internal/config"
 	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luids-io/archive/pkg/archive/builder"
+	"github.com/luids-io/core/yalogi"
 )
 
 // ArchiveEventAPI creates grpc service
-func ArchiveEventAPI(cfg *config.ArchiveEventAPICfg, finder *builder.Builder) (*eventapi.Service, error) {
+func ArchiveEventAPI(cfg *config.ArchiveEventAPICfg, finder *builder.Builder, logger yalogi.Logger) (*eventapi.Service, error) {
 	if !cfg.Enable {
 		return nil, errors.New("event api disabled")
 	}
@@ -34,11 +35,14 @@ func ArchiveEventAPI(cfg *config.ArchiveEventAPICfg, finder *builder.Builder) (*
 	if !ok {
 		return nil, fmt.Errorf("can't cast id '%s' to event.Archiver", cfg.Service)
 	}
-	return eventapi.NewService(c), nil
+	if !cfg.Log {
+		logger = yalogi.LogNull
+	}
+	return eventapi.NewService(c, eventapi.SetServiceLogger(logger)), nil
 }
 
 // ArchiveDNSAPI creates grpc service
-func ArchiveDNSAPI(cfg *config.ArchiveDNSAPICfg, finder *builder.Builder) (*dnsapi.Service, error) {
+func ArchiveDNSAPI(cfg *config.ArchiveDNSAPICfg, finder *builder.Builder, logger yalogi.Logger) (*dnsapi.Service, error) {
 	if !cfg.Enable {
 		return nil, errors.New("event api disabled")
 	}
@@ -54,11 +58,14 @@ func ArchiveDNSAPI(cfg *config.ArchiveDNSAPICfg, finder *builder.Builder) (*dnsa
 	if !ok {
 		return nil, fmt.Errorf("can't cast id '%s' to dnsutil.Archiver", cfg.Service)
 	}
-	return dnsapi.NewService(c), nil
+	if !cfg.Log {
+		logger = yalogi.LogNull
+	}
+	return dnsapi.NewService(c, dnsapi.SetServiceLogger(logger)), nil
 }
 
 // ArchiveTLSAPI creates grpc service
-func ArchiveTLSAPI(cfg *config.ArchiveTLSAPICfg, finder *builder.Builder) (*tlsapi.Service, error) {
+func ArchiveTLSAPI(cfg *config.ArchiveTLSAPICfg, finder *builder.Builder, logger yalogi.Logger) (*tlsapi.Service, error) {
 	if !cfg.Enable {
 		return nil, errors.New("event api disabled")
 	}
@@ -74,7 +81,10 @@ func ArchiveTLSAPI(cfg *config.ArchiveTLSAPICfg, finder *builder.Builder) (*tlsa
 	if !ok {
 		return nil, fmt.Errorf("can't cast id '%s' to tlsutil.Archiver", cfg.Service)
 	}
-	return tlsapi.NewService(c), nil
+	if !cfg.Log {
+		logger = yalogi.LogNull
+	}
+	return tlsapi.NewService(c, tlsapi.SetServiceLogger(logger)), nil
 }
 
 func getArchiveService(name string, api archive.API, finder *builder.Builder) (archive.Service, error) {

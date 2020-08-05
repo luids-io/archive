@@ -14,6 +14,7 @@ import (
 // ArchiveDNSAPICfg stores archive service preferences
 type ArchiveDNSAPICfg struct {
 	Enable  bool
+	Log     bool
 	Service string
 }
 
@@ -24,6 +25,7 @@ func (cfg *ArchiveDNSAPICfg) SetPFlags(short bool, prefix string) {
 		aprefix = prefix + "."
 	}
 	pflag.BoolVar(&cfg.Enable, aprefix+"enable", cfg.Enable, "Enable dns archive api.")
+	pflag.BoolVar(&cfg.Log, aprefix+"log", cfg.Log, "Enable log in service.")
 	pflag.StringVar(&cfg.Service, aprefix+"service", cfg.Service, "Service id archive dns.")
 }
 
@@ -34,6 +36,7 @@ func (cfg *ArchiveDNSAPICfg) BindViper(v *viper.Viper, prefix string) {
 		aprefix = prefix + "."
 	}
 	util.BindViper(v, aprefix+"enable")
+	util.BindViper(v, aprefix+"log")
 	util.BindViper(v, aprefix+"service")
 }
 
@@ -44,25 +47,17 @@ func (cfg *ArchiveDNSAPICfg) FromViper(v *viper.Viper, prefix string) {
 		aprefix = prefix + "."
 	}
 	cfg.Enable = v.GetBool(aprefix + "enable")
+	cfg.Log = v.GetBool(aprefix + "log")
 	cfg.Service = v.GetString(aprefix + "service")
 }
 
 // Empty returns true if configuration is empty
 func (cfg ArchiveDNSAPICfg) Empty() bool {
-	if !cfg.Enable {
-		return true
-	}
-	if cfg.Service != "" {
-		return false
-	}
-	return true
+	return !cfg.Enable
 }
 
 // Validate checks that configuration is ok
 func (cfg ArchiveDNSAPICfg) Validate() error {
-	if !cfg.Enable {
-		return nil
-	}
 	if cfg.Service == "" {
 		return fmt.Errorf("service must be defined")
 	}

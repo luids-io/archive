@@ -20,22 +20,22 @@ func Default(program string) *goconfig.Config {
 			Data:     &iconfig.ArchiverCfg{},
 		},
 		goconfig.Section{
-			Name:     "archive.api.event",
+			Name:     "service.event.archive",
 			Required: false,
 			Short:    false,
-			Data:     &iconfig.ArchiveEventAPICfg{},
+			Data:     &iconfig.ArchiveEventAPICfg{Log: true},
 		},
 		goconfig.Section{
-			Name:     "archive.api.dns",
+			Name:     "service.dnsutil.archive",
 			Required: false,
 			Short:    false,
-			Data:     &iconfig.ArchiveDNSAPICfg{},
+			Data:     &iconfig.ArchiveDNSAPICfg{Log: true},
 		},
 		goconfig.Section{
-			Name:     "archive.api.tls",
+			Name:     "service.tlsutil.archive",
 			Required: false,
 			Short:    false,
-			Data:     &iconfig.ArchiveTLSAPICfg{},
+			Data:     &iconfig.ArchiveTLSAPICfg{Log: true},
 		},
 		goconfig.Section{
 			Name:     "server",
@@ -63,11 +63,11 @@ func Default(program string) *goconfig.Config {
 	}
 	// add aditional validators
 	cfg.AddValidator(func(cfg *goconfig.Config) error {
-		noEvent := cfg.Data("archive.api.event").Empty()
-		noDNS := cfg.Data("archive.api.dns").Empty()
-		noTLS := cfg.Data("archive.api.tls").Empty()
+		noEvent := cfg.Data("service.event.archive").Empty()
+		noDNS := cfg.Data("service.dnsutil.archive").Empty()
+		noTLS := cfg.Data("service.tlsutil.archive").Empty()
 		if noEvent && noDNS && noTLS {
-			return errors.New("'archive.api' section is required")
+			return errors.New("enable service is required")
 		}
 		return nil
 	})

@@ -91,15 +91,15 @@ func main() {
 		logger.Fatalf("couldn't create grpc server: %v", err)
 	}
 	// create grpc services
-	err = createArchiveEventAPI(gsrv, archivers, logger)
+	err = createArchiveEventAPI(gsrv, archivers, msrv, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create eventapi service: %v", err)
 	}
-	err = createArchiveDNSAPI(gsrv, archivers, logger)
+	err = createArchiveDNSAPI(gsrv, archivers, msrv, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create dnsapi service: %v", err)
 	}
-	err = createArchiveTLSAPI(gsrv, archivers, logger)
+	err = createArchiveTLSAPI(gsrv, archivers, msrv, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create tlsapi service: %v", err)
 	}
