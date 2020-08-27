@@ -19,6 +19,9 @@ import (
 	"github.com/luids-io/core/yalogi"
 )
 
+// ServiceClass registered.
+const ServiceClass = "tlsmdb"
+
 // Collection names
 const (
 	ConnectionColName  = "connections"
@@ -37,9 +40,7 @@ const (
 
 // Archiver implements tls archive backend using a mongo database
 type Archiver struct {
-	tlsutil.Archiver
-	archive.Service
-
+	id     string
 	opts   options
 	logger yalogi.Logger
 	//database
@@ -56,12 +57,13 @@ type Archiver struct {
 }
 
 // New creates a new mongodb storage
-func New(session *mgo.Session, db string, opt ...Option) *Archiver {
+func New(id string, session *mgo.Session, db string, opt ...Option) *Archiver {
 	opts := defaultOptions
 	for _, o := range opt {
 		o(&opts)
 	}
 	s := &Archiver{
+		id:       id,
 		opts:     opts,
 		logger:   opts.logger,
 		database: db,
@@ -124,7 +126,7 @@ func (a *Archiver) Start() error {
 	if a.started {
 		return fmt.Errorf("archiver started")
 	}
-	a.logger.Infof("starting mongodb tls archiver")
+	a.logger.Infof("%s: starting mongodb tls archiver", a.id)
 	//create indexes
 	err := a.createIdx()
 	if err != nil {
@@ -157,7 +159,7 @@ func (a *Archiver) SaveConnection(ctx context.Context, cn *tlsutil.ConnectionDat
 	}
 	err := a.bulkConns.Insert(cn)
 	if err != nil {
-		a.logger.Warnf("saving connection '%s': %v", cn.ID, err)
+		a.logger.Warnf("%s: saving connection '%s': %v", a.id, cn.ID, err)
 		return "", tlsutil.ErrInternal
 	}
 	return cn.ID, nil
@@ -179,7 +181,7 @@ func (a *Archiver) SaveCertificate(ctx context.Context, cert *tlsutil.Certificat
 	err := a.getCollection(CertificateColName).
 		Find(bson.M{"digest": cert.Digest}).One(&dbcert)
 	if err != nil && err != mgo.ErrNotFound {
-		a.logger.Errorf("finding cert digest: %v", err)
+		a.logger.Errorf("%s: finding cert digest: %v", a.id, err)
 		return "", tlsutil.ErrInternal
 	} else if err == nil {
 		//exists, but not in cache-> add to cache
@@ -190,7 +192,7 @@ func (a *Archiver) SaveCertificate(ctx context.Context, cert *tlsutil.Certificat
 	a.cacheCerts.Add(cert.Digest, cert, cache.DefaultExpiration)
 	err = a.getCollection(CertificateColName).Insert(cert)
 	if err != nil {
-		a.logger.Warnf("saving cert '%s': %v", cert.Digest, err)
+		a.logger.Warnf("%s: saving cert '%s': %v", a.id, cert.Digest, err)
 		return "", tlsutil.ErrInternal
 	}
 	return cert.ID, nil
@@ -203,7 +205,7 @@ func (a *Archiver) StoreRecord(r *tlsutil.RecordData) error {
 	}
 	err := a.bulkRecords.Insert(r)
 	if err != nil {
-		a.logger.Warnf("saving record: %v", err)
+		a.logger.Warnf("%s: saving record: %v", a.id, err)
 		return tlsutil.ErrInternal
 	}
 	return nil
@@ -215,7 +217,7 @@ func (a *Archiver) Shutdown() {
 	defer a.mu.Unlock()
 
 	if a.started {
-		a.logger.Infof("shutting down tls archiver")
+		a.logger.Infof("%s: shutting down tls archiver", a.id)
 		a.started = false
 		close(a.close)
 		a.session.Fsync(false)
@@ -243,12 +245,12 @@ func (a *Archiver) doSync() {
 		case <-tick.C:
 			errs := a.syncBulks()
 			for _, err := range errs {
-				a.logger.Warnf("%v", err)
+				a.logger.Warnf("%s: %v", a.id, err)
 			}
 		case <-a.close:
 			errs := a.syncBulks()
 			for _, err := range errs {
-				a.logger.Warnf("%v", err)
+				a.logger.Warnf("%s: %v", a.id, err)
 			}
 			break
 		}
@@ -280,8 +282,13 @@ func (a *Archiver) getCollection(name string) *mgo.Collection {
 	return a.session.DB(a.database).C(name)
 }
 
-// GetClass implements archive.Service interface
-func (a *Archiver) GetClass() string {
+// ID implements archive.Service interface.
+func (a *Archiver) ID() string {
+	return a.id
+}
+
+// Class implements archive.Service interface
+func (a *Archiver) Class() string {
 	return ServiceClass
 }
 

@@ -18,6 +18,9 @@ import (
 	"github.com/luids-io/core/yalogi"
 )
 
+// ServiceClass registered.
+const ServiceClass = "dnsmdb"
+
 // Collection names
 const (
 	ResolvColName = "resolvs"
@@ -29,11 +32,9 @@ const (
 	DefaultSyncSeconds    = 5
 )
 
-// Archiver implements dns archive backend using a mongo database
+// Archiver implements dns archive backend using a mongo database.
 type Archiver struct {
-	dnsutil.Archiver
-	archive.Service
-
+	id     string
 	opts   options
 	logger yalogi.Logger
 	//database
@@ -47,13 +48,14 @@ type Archiver struct {
 	bulkResolvs *mongoutil.Bulk
 }
 
-// New creates a new mongodb storage
-func New(session *mgo.Session, db string, opt ...Option) *Archiver {
+// New creates a new mongodb storage.
+func New(id string, session *mgo.Session, db string, opt ...Option) *Archiver {
 	opts := defaultOptions
 	for _, o := range opt {
 		o(&opts)
 	}
 	s := &Archiver{
+		id:       id,
 		opts:     opts,
 		logger:   opts.logger,
 		database: db,
@@ -62,7 +64,7 @@ func New(session *mgo.Session, db string, opt ...Option) *Archiver {
 	return s
 }
 
-// Option encapsules options
+// Option encapsules options.
 type Option func(*options)
 
 type options struct {
@@ -80,7 +82,7 @@ var defaultOptions = options{
 	closeSession:   false,
 }
 
-// SetLogger option allows set a custom logger
+// SetLogger option allows set a custom logger.
 func SetLogger(l yalogi.Logger) Option {
 	return func(o *options) {
 		if l != nil {
@@ -89,21 +91,21 @@ func SetLogger(l yalogi.Logger) Option {
 	}
 }
 
-// CloseSession option allows close mongo session on shutdown
+// CloseSession option allows close mongo session on shutdown.
 func CloseSession(b bool) Option {
 	return func(o *options) {
 		o.closeSession = b
 	}
 }
 
-// SetPrefix option allows set a prefix to collection
+// SetPrefix option allows set a prefix to collection.
 func SetPrefix(s string) Option {
 	return func(o *options) {
 		o.prefix = s
 	}
 }
 
-// Start the archiver
+// Start the archiver.
 func (a *Archiver) Start() error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -111,7 +113,7 @@ func (a *Archiver) Start() error {
 	if a.started {
 		return fmt.Errorf("archiver started")
 	}
-	a.logger.Infof("starting mongodb dns archiver")
+	a.logger.Infof("%s: starting mongodb dns archiver", a.id)
 	//create indexes
 	err := a.createIdx()
 	if err != nil {
@@ -129,7 +131,7 @@ func (a *Archiver) Start() error {
 	return nil
 }
 
-// SaveResolv implements dnsutil.Archiver interface
+// SaveResolv implements dnsutil.Archiver interface.
 func (a *Archiver) SaveResolv(ctx context.Context, r dnsutil.ResolvData) (string, error) {
 	if !a.started {
 		return "", dnsutil.ErrUnavailable
@@ -137,19 +139,19 @@ func (a *Archiver) SaveResolv(ctx context.Context, r dnsutil.ResolvData) (string
 	r.ID = bson.NewObjectId().String()
 	err := a.bulkResolvs.Insert(toMongoData(r))
 	if err != nil {
-		a.logger.Warnf("saving resolv '%s': %v", r.Name, err)
+		a.logger.Warnf("%s: saving resolv '%s': %v", a.id, r.Name, err)
 		return "", dnsutil.ErrInternal
 	}
 	return r.ID, nil
 }
 
-// Shutdown closes the conection
+// Shutdown closes the conection.
 func (a *Archiver) Shutdown() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
 	if a.started {
-		a.logger.Infof("shutting down dns archiver")
+		a.logger.Infof("%s: shutting down dns archiver", a.id)
 		a.started = false
 		close(a.close)
 		a.session.Fsync(false)
@@ -160,7 +162,7 @@ func (a *Archiver) Shutdown() {
 	return
 }
 
-// Ping tests the connection with the storage
+// Ping tests the connection with the storage.
 func (a *Archiver) Ping() error {
 	a.logger.Debugf("ping")
 	if !a.started {
@@ -177,12 +179,12 @@ func (a *Archiver) doSync() {
 		case <-tick.C:
 			errs := a.syncBulks()
 			for _, err := range errs {
-				a.logger.Warnf("%v", err)
+				a.logger.Warnf("%s: %v", a.id, err)
 			}
 		case <-a.close:
 			errs := a.syncBulks()
 			for _, err := range errs {
-				a.logger.Warnf("%v", err)
+				a.logger.Warnf("%s: %v", a.id, err)
 			}
 			break
 		}
@@ -210,12 +212,17 @@ func (a *Archiver) getCollection(name string) *mgo.Collection {
 	return a.session.DB(a.database).C(name)
 }
 
-// Class implements archive.Service interface
+// ID implements archive.Service interface.
+func (a *Archiver) ID() string {
+	return a.id
+}
+
+// Class implements archive.Service interface.
 func (a *Archiver) Class() string {
 	return ServiceClass
 }
 
-// Implements implements archive.Service interface
+// Implements implements archive.Service interface.
 func (a *Archiver) Implements() []archive.API {
 	return []archive.API{archive.DNSAPI}
 }

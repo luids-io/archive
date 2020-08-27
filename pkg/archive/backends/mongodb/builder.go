@@ -9,21 +9,20 @@ import (
 	"github.com/globalsign/mgo"
 
 	"github.com/luids-io/archive/pkg/archive"
-	"github.com/luids-io/archive/pkg/archive/builder"
 )
 
-// Builder returns a builder function
-func Builder() builder.BuildBackendFn {
-	return func(b *builder.Builder, cfg builder.BackendDef) (archive.Backend, error) {
-		if cfg.URL == "" {
+// Builder returns a builder function.
+func Builder() archive.BuildBackendFn {
+	return func(b *archive.Builder, def archive.BackendDef) (archive.Backend, error) {
+		if def.URL == "" {
 			return nil, errors.New("'url' is required")
 		}
 		// create session with mgo
-		session, err := mgo.Dial(cfg.URL)
+		session, err := mgo.Dial(def.URL)
 		if err != nil {
-			return nil, fmt.Errorf("dialing with mongodb '%s': %v", cfg.URL, err)
+			return nil, fmt.Errorf("dialing with mongodb '%s': %v", def.URL, err)
 		}
-		backend := &mdbBackend{session: session}
+		backend := &mdbBackend{id: def.ID, session: session}
 		b.OnShutdown(func() error {
 			session.Close()
 			return nil
@@ -32,11 +31,6 @@ func Builder() builder.BuildBackendFn {
 	}
 }
 
-const (
-	// BackendClass defines backend name
-	BackendClass = "mongodb"
-)
-
 func init() {
-	builder.RegisterBackendBuilder(BackendClass, Builder())
+	archive.RegisterBackendBuilder(BackendClass, Builder())
 }

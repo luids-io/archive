@@ -6,9 +6,17 @@ import (
 	"github.com/globalsign/mgo"
 )
 
+// BackendClass registered.
+const BackendClass = "mongodb"
+
 //mdbBackend implements archive.Backend interface
 type mdbBackend struct {
+	id      string
 	session *mgo.Session
+}
+
+func (b *mdbBackend) ID() string {
+	return b.id
 }
 
 func (b *mdbBackend) Class() string {

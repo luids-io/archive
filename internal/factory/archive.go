@@ -6,23 +6,23 @@ import (
 	"fmt"
 
 	"github.com/luids-io/archive/internal/config"
-	"github.com/luids-io/archive/pkg/archive/builder"
+	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luids-io/common/util"
 	"github.com/luids-io/core/yalogi"
 )
 
 // ArchiveBuilder is a factory
-func ArchiveBuilder(cfg *config.ArchiverCfg, logger yalogi.Logger) (*builder.Builder, error) {
+func ArchiveBuilder(cfg *config.ArchiverCfg, logger yalogi.Logger) (*archive.Builder, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
 	}
-	b := builder.NewBuilder(builder.SetLogger(logger))
+	b := archive.NewBuilder(archive.SetLogger(logger))
 	return b, nil
 }
 
 //Backends creates backends from configuration files
-func Backends(cfg *config.ArchiverCfg, b *builder.Builder, logger yalogi.Logger) error {
+func Backends(cfg *config.ArchiverCfg, b *archive.Builder, logger yalogi.Logger) error {
 	err := cfg.Validate()
 	if err != nil {
 		return fmt.Errorf("bad config: %v", err)
@@ -47,10 +47,10 @@ func Backends(cfg *config.ArchiverCfg, b *builder.Builder, logger yalogi.Logger)
 	return nil
 }
 
-func loadBackendDefs(dbFiles []string) ([]builder.BackendDef, error) {
-	loadedDB := make([]builder.BackendDef, 0)
+func loadBackendDefs(dbFiles []string) ([]archive.BackendDef, error) {
+	loadedDB := make([]archive.BackendDef, 0)
 	for _, file := range dbFiles {
-		entries, err := builder.BackendDefsFromFile(file)
+		entries, err := archive.BackendDefsFromFile(file)
 		if err != nil {
 			return nil, fmt.Errorf("couln't load database: %v", err)
 		}
@@ -60,7 +60,7 @@ func loadBackendDefs(dbFiles []string) ([]builder.BackendDef, error) {
 }
 
 //Services creates services from configuration files
-func Services(cfg *config.ArchiverCfg, b *builder.Builder, logger yalogi.Logger) error {
+func Services(cfg *config.ArchiverCfg, b *archive.Builder, logger yalogi.Logger) error {
 	err := cfg.Validate()
 	if err != nil {
 		return fmt.Errorf("bad config: %v", err)
@@ -85,10 +85,10 @@ func Services(cfg *config.ArchiverCfg, b *builder.Builder, logger yalogi.Logger)
 	return nil
 }
 
-func loadServiceDefs(dbFiles []string) ([]builder.ServiceDef, error) {
-	loadedDB := make([]builder.ServiceDef, 0)
+func loadServiceDefs(dbFiles []string) ([]archive.ServiceDef, error) {
+	loadedDB := make([]archive.ServiceDef, 0)
 	for _, file := range dbFiles {
-		entries, err := builder.ServiceDefsFromFile(file)
+		entries, err := archive.ServiceDefsFromFile(file)
 		if err != nil {
 			return nil, fmt.Errorf("couln't load database: %v", err)
 		}

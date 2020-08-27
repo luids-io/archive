@@ -14,12 +14,11 @@ import (
 	tlsapi "github.com/luids-io/api/tlsutil/grpc/archive"
 	"github.com/luids-io/archive/internal/config"
 	"github.com/luids-io/archive/pkg/archive"
-	"github.com/luids-io/archive/pkg/archive/builder"
 	"github.com/luids-io/core/yalogi"
 )
 
 // ArchiveEventAPI creates grpc service
-func ArchiveEventAPI(cfg *config.ArchiveEventAPICfg, finder *builder.Builder, logger yalogi.Logger) (*eventapi.Service, error) {
+func ArchiveEventAPI(cfg *config.ArchiveEventAPICfg, finder *archive.Builder, logger yalogi.Logger) (*eventapi.Service, error) {
 	if !cfg.Enable {
 		return nil, errors.New("event api disabled")
 	}
@@ -42,7 +41,7 @@ func ArchiveEventAPI(cfg *config.ArchiveEventAPICfg, finder *builder.Builder, lo
 }
 
 // ArchiveDNSAPI creates grpc service
-func ArchiveDNSAPI(cfg *config.ArchiveDNSAPICfg, finder *builder.Builder, logger yalogi.Logger) (*dnsapi.Service, error) {
+func ArchiveDNSAPI(cfg *config.ArchiveDNSAPICfg, finder *archive.Builder, logger yalogi.Logger) (*dnsapi.Service, error) {
 	if !cfg.Enable {
 		return nil, errors.New("event api disabled")
 	}
@@ -65,7 +64,7 @@ func ArchiveDNSAPI(cfg *config.ArchiveDNSAPICfg, finder *builder.Builder, logger
 }
 
 // ArchiveTLSAPI creates grpc service
-func ArchiveTLSAPI(cfg *config.ArchiveTLSAPICfg, finder *builder.Builder, logger yalogi.Logger) (*tlsapi.Service, error) {
+func ArchiveTLSAPI(cfg *config.ArchiveTLSAPICfg, finder *archive.Builder, logger yalogi.Logger) (*tlsapi.Service, error) {
 	if !cfg.Enable {
 		return nil, errors.New("event api disabled")
 	}
@@ -87,7 +86,7 @@ func ArchiveTLSAPI(cfg *config.ArchiveTLSAPICfg, finder *builder.Builder, logger
 	return tlsapi.NewService(c, tlsapi.SetServiceLogger(logger)), nil
 }
 
-func getArchiveService(name string, api archive.API, finder *builder.Builder) (archive.Service, error) {
+func getArchiveService(name string, api archive.API, finder *archive.Builder) (archive.Service, error) {
 	if name == "" {
 		return nil, errors.New("service id is empty")
 	}

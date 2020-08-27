@@ -13,7 +13,7 @@ import (
 	tlsapi "github.com/luids-io/api/tlsutil/grpc/archive"
 	iconfig "github.com/luids-io/archive/internal/config"
 	ifactory "github.com/luids-io/archive/internal/factory"
-	"github.com/luids-io/archive/pkg/archive/builder"
+	"github.com/luids-io/archive/pkg/archive"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
 	"github.com/luids-io/core/serverd"
@@ -59,7 +59,7 @@ func createServer(msrv *serverd.Manager) (*grpc.Server, error) {
 	return gsrv, nil
 }
 
-func createArchivers(msrv *serverd.Manager, logger yalogi.Logger) (*builder.Builder, error) {
+func createArchivers(msrv *serverd.Manager, logger yalogi.Logger) (*archive.Builder, error) {
 	cfgArchive := cfg.Data("archive").(*iconfig.ArchiverCfg)
 	builder, err := ifactory.ArchiveBuilder(cfgArchive, logger)
 	if err != nil {
@@ -84,7 +84,7 @@ func createArchivers(msrv *serverd.Manager, logger yalogi.Logger) (*builder.Buil
 	return builder, nil
 }
 
-func createArchiveEventAPI(gsrv *grpc.Server, finder *builder.Builder, msrv *serverd.Manager, logger yalogi.Logger) error {
+func createArchiveEventAPI(gsrv *grpc.Server, finder *archive.Builder, msrv *serverd.Manager, logger yalogi.Logger) error {
 	cfgArchive := cfg.Data("service.event.archive").(*iconfig.ArchiveEventAPICfg)
 	if cfgArchive.Enable {
 		gsvc, err := ifactory.ArchiveEventAPI(cfgArchive, finder, logger)
@@ -97,7 +97,7 @@ func createArchiveEventAPI(gsrv *grpc.Server, finder *builder.Builder, msrv *ser
 	return nil
 }
 
-func createArchiveDNSAPI(gsrv *grpc.Server, finder *builder.Builder, msrv *serverd.Manager, logger yalogi.Logger) error {
+func createArchiveDNSAPI(gsrv *grpc.Server, finder *archive.Builder, msrv *serverd.Manager, logger yalogi.Logger) error {
 	cfgArchive := cfg.Data("service.dnsutil.archive").(*iconfig.ArchiveDNSAPICfg)
 	if cfgArchive.Enable {
 		gsvc, err := ifactory.ArchiveDNSAPI(cfgArchive, finder, logger)
@@ -110,7 +110,7 @@ func createArchiveDNSAPI(gsrv *grpc.Server, finder *builder.Builder, msrv *serve
 	return nil
 }
 
-func createArchiveTLSAPI(gsrv *grpc.Server, finder *builder.Builder, msrv *serverd.Manager, logger yalogi.Logger) error {
+func createArchiveTLSAPI(gsrv *grpc.Server, finder *archive.Builder, msrv *serverd.Manager, logger yalogi.Logger) error {
 	cfgArchive := cfg.Data("service.tlsutil.archive").(*iconfig.ArchiveTLSAPICfg)
 	if cfgArchive.Enable {
 		gsvc, err := ifactory.ArchiveTLSAPI(cfgArchive, finder, logger)

@@ -1,13 +1,12 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package builder
+package archive
 
 import (
 	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luids-io/core/yalogi"
 )
 
@@ -15,8 +14,8 @@ import (
 type Builder struct {
 	opts     options
 	logger   yalogi.Logger
-	backends map[string]archive.Backend
-	services map[string]archive.Service
+	backends map[string]Backend
+	services map[string]Service
 	startup  []func() error
 	shutdown []func() error
 }
@@ -46,27 +45,27 @@ func NewBuilder(opt ...Option) *Builder {
 	return &Builder{
 		opts:     opts,
 		logger:   opts.logger,
-		backends: make(map[string]archive.Backend),
-		services: make(map[string]archive.Service),
+		backends: make(map[string]Backend),
+		services: make(map[string]Service),
 		startup:  make([]func() error, 0),
 		shutdown: make([]func() error, 0),
 	}
 }
 
 // Backend returns the Backend with the id
-func (b *Builder) Backend(id string) (archive.Backend, bool) {
+func (b *Builder) Backend(id string) (Backend, bool) {
 	ba, ok := b.backends[id]
 	return ba, ok
 }
 
 // Service returns the Service with the id
-func (b *Builder) Service(id string) (archive.Service, bool) {
+func (b *Builder) Service(id string) (Service, bool) {
 	svc, ok := b.services[id]
 	return svc, ok
 }
 
 // BuildBackend creates a Backend using the definition passed as param
-func (b *Builder) BuildBackend(def BackendDef) (archive.Backend, error) {
+func (b *Builder) BuildBackend(def BackendDef) (Backend, error) {
 	b.logger.Debugf("building '%s' class '%s'", def.ID, def.Class)
 	if def.ID == "" {
 		return nil, errors.New("id field is required")
@@ -95,7 +94,7 @@ func (b *Builder) BuildBackend(def BackendDef) (archive.Backend, error) {
 }
 
 // BuildService creates a Service using the definition passed as param
-func (b *Builder) BuildService(def ServiceDef) (archive.Service, error) {
+func (b *Builder) BuildService(def ServiceDef) (Service, error) {
 	b.logger.Debugf("building '%s' class '%s'", def.ID, def.Class)
 	if def.ID == "" {
 		return nil, errors.New("id field is required")

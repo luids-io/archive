@@ -10,18 +10,17 @@ import (
 
 	"github.com/luids-io/archive/pkg/archive"
 	"github.com/luids-io/archive/pkg/archive/backends/mongodb"
-	"github.com/luids-io/archive/pkg/archive/builder"
 	"github.com/luids-io/core/option"
 )
 
-// Builder returns a builder function
-func Builder() builder.BuildServiceFn {
-	return func(b *builder.Builder, cfg builder.ServiceDef) (archive.Service, error) {
-		if cfg.Backend == "" {
+// Builder returns a builder function.
+func Builder() archive.BuildServiceFn {
+	return func(b *archive.Builder, def archive.ServiceDef) (archive.Service, error) {
+		if def.Backend == "" {
 			return nil, errors.New("'backend' is required")
 		}
 		//get mongodb backend
-		back, ok := b.Backend(cfg.Backend)
+		back, ok := b.Backend(def.Backend)
 		if !ok {
 			return nil, errors.New("'backend' not found")
 		}
@@ -37,17 +36,17 @@ func Builder() builder.BuildServiceFn {
 		bopt := make([]Option, 0)
 		bopt = append(bopt, SetLogger(b.Logger()))
 		//by default, it uses id as database name
-		dbname := cfg.ID
-		if cfg.Opts != nil {
+		dbname := def.ID
+		if def.Opts != nil {
 			var err error
-			dbnameOpt, ok, err := option.String(cfg.Opts, "dbname")
+			dbnameOpt, ok, err := option.String(def.Opts, "dbname")
 			if err != nil {
 				return nil, err
 			}
 			if ok {
 				dbname = dbnameOpt
 			}
-			prefixOpt, ok, err := option.String(cfg.Opts, "prefix")
+			prefixOpt, ok, err := option.String(def.Opts, "prefix")
 			if err != nil {
 				return nil, err
 			}
@@ -56,7 +55,7 @@ func Builder() builder.BuildServiceFn {
 			}
 		}
 		//create archive service
-		archiver := New(session, dbname, bopt...)
+		archiver := New(def.ID, session, dbname, bopt...)
 		b.OnStartup(func() error {
 			return archiver.Start()
 		})
@@ -68,11 +67,6 @@ func Builder() builder.BuildServiceFn {
 	}
 }
 
-const (
-	// ServiceClass defines service name
-	ServiceClass = "dnsmdb"
-)
-
 func init() {
-	builder.RegisterServiceBuilder(ServiceClass, Builder())
+	archive.RegisterServiceBuilder(ServiceClass, Builder())
 }

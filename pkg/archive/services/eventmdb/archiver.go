@@ -15,16 +15,17 @@ import (
 	"github.com/luids-io/core/yalogi"
 )
 
+// ServiceClass registered.
+const ServiceClass = "eventmdb"
+
 // Collection names
 const (
 	EventColName = "events"
 )
 
-// Archiver implements event archive backend using a mongo database
+// Archiver implements event archive backend using a mongo database.
 type Archiver struct {
-	event.Archiver
-	archive.Service
-
+	id     string
 	opts   options
 	logger yalogi.Logger
 	//database
@@ -36,12 +37,13 @@ type Archiver struct {
 }
 
 // New creates a new mongodb storage
-func New(session *mgo.Session, db string, opt ...Option) *Archiver {
+func New(id string, session *mgo.Session, db string, opt ...Option) *Archiver {
 	opts := defaultOptions
 	for _, o := range opt {
 		o(&opts)
 	}
 	s := &Archiver{
+		id:       id,
 		opts:     opts,
 		logger:   opts.logger,
 		database: db,
@@ -92,7 +94,7 @@ func (a *Archiver) Start() error {
 	if a.started {
 		return fmt.Errorf("archiver started")
 	}
-	a.logger.Infof("starting mongodb event archiver")
+	a.logger.Infof("%s: starting mongodb event archiver", a.id)
 	//create indexes
 	err := a.createIdx()
 	if err != nil {
@@ -110,7 +112,7 @@ func (a *Archiver) SaveEvent(ctx context.Context, e event.Event) (string, error)
 	}
 	err := a.getCollection(EventColName).Insert(e)
 	if err != nil {
-		a.logger.Warnf("saving event '%s': %v", e.ID, err)
+		a.logger.Warnf("%s: saving event '%s': %v", a.id, e.ID, err)
 		return "", event.ErrInternal
 	}
 	return e.ID, nil
@@ -122,7 +124,7 @@ func (a *Archiver) Shutdown() {
 	defer a.mu.Unlock()
 
 	if a.started {
-		a.logger.Infof("shutting down event archiver")
+		a.logger.Infof("%s: shutting down event archiver", a.id)
 		a.started = false
 		a.session.Fsync(false)
 		if a.opts.closeSession {
@@ -152,8 +154,13 @@ func (a *Archiver) getCollection(name string) *mgo.Collection {
 	return a.session.DB(a.database).C(name)
 }
 
-// GetClass implements archive.Service interface
-func (a *Archiver) GetClass() string {
+// ID implements archive.Service interface.
+func (a *Archiver) ID() string {
+	return a.id
+}
+
+// Class implements archive.Service interface
+func (a *Archiver) Class() string {
 	return ServiceClass
 }
 
