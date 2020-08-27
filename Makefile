@@ -44,8 +44,7 @@ clean:
 
 docker:
 	@echo "$(WHALE) $@"
-	docker build -t luarchive -f Dockerfile.luarchive \
-		--build-arg github_user=${github_user} --build-arg github_token=${github_token} .
+	docker build -t luarchive -f Dockerfile.luarchive .
 
 ## Targets for Makefile.release
 .PHONY: release
