@@ -11,13 +11,13 @@ import (
 	"github.com/luids-io/core/grpctls"
 )
 
-// BuildBackendFn defines a function that constructs a Backend
+// BuildBackendFn defines a function that constructs a Backend.
 type BuildBackendFn func(b *Builder, def BackendDef) (Backend, error)
 
-// BuildServiceFn defines a function that constructs a Service
+// BuildServiceFn defines a function that constructs a Service.
 type BuildServiceFn func(b *Builder, def ServiceDef) (Service, error)
 
-// BackendDef stores configuration definition of backends
+// BackendDef stores configuration definition of backends.
 type BackendDef struct {
 	// ID must exist and be unique
 	ID string `json:"id"`
@@ -44,7 +44,7 @@ func (def BackendDef) ClientCfg() grpctls.ClientCfg {
 	return *def.Client
 }
 
-// ServiceDef stores configuration definition of services
+// ServiceDef stores configuration definition of services.
 type ServiceDef struct {
 	// ID must exist and be unique
 	ID string `json:"id"`
@@ -98,12 +98,12 @@ func ServiceDefsFromFile(path string) ([]ServiceDef, error) {
 	return defs, nil
 }
 
-// RegisterBackendBuilder registers a builder
+// RegisterBackendBuilder registers a builder.
 func RegisterBackendBuilder(class string, builder BuildBackendFn) {
 	regBackendBuilder[class] = builder
 }
 
-// RegisterServiceBuilder registers a builder
+// RegisterServiceBuilder registers a builder.
 func RegisterServiceBuilder(class string, builder BuildServiceFn) {
 	regServiceBuilder[class] = builder
 }

@@ -10,9 +10,9 @@ import (
 	"github.com/luids-io/core/yalogi"
 )
 
-// Builder constructs backends and services from definitions
+// Builder constructs backends and services from definitions.
 type Builder struct {
-	opts     options
+	opts     buildOpts
 	logger   yalogi.Logger
 	backends map[string]Backend
 	services map[string]Service
@@ -20,24 +20,24 @@ type Builder struct {
 	shutdown []func() error
 }
 
-// Option is used for builder configuration
-type Option func(*options)
+// BuilderOption is used for builder configuration.
+type BuilderOption func(*buildOpts)
 
-type options struct {
+type buildOpts struct {
 	logger yalogi.Logger
 }
 
-var defaultOptions = options{logger: yalogi.LogNull}
+var defaultOptions = buildOpts{logger: yalogi.LogNull}
 
-// SetLogger sets a logger for the component
-func SetLogger(l yalogi.Logger) Option {
-	return func(o *options) {
+// SetLogger sets a logger for the component.
+func SetLogger(l yalogi.Logger) BuilderOption {
+	return func(o *buildOpts) {
 		o.logger = l
 	}
 }
 
-// NewBuilder instances a new builder
-func NewBuilder(opt ...Option) *Builder {
+// NewBuilder instances a new builder.
+func NewBuilder(opt ...BuilderOption) *Builder {
 	opts := defaultOptions
 	for _, o := range opt {
 		o(&opts)
@@ -52,19 +52,19 @@ func NewBuilder(opt ...Option) *Builder {
 	}
 }
 
-// Backend returns the Backend with the id
+// Backend returns the Backend with the id.
 func (b *Builder) Backend(id string) (Backend, bool) {
 	ba, ok := b.backends[id]
 	return ba, ok
 }
 
-// Service returns the Service with the id
+// Service returns the Service with the id.
 func (b *Builder) Service(id string) (Service, bool) {
 	svc, ok := b.services[id]
 	return svc, ok
 }
 
-// BuildBackend creates a Backend using the definition passed as param
+// BuildBackend creates a Backend using the definition passed as param.
 func (b *Builder) BuildBackend(def BackendDef) (Backend, error) {
 	b.logger.Debugf("building '%s' class '%s'", def.ID, def.Class)
 	if def.ID == "" {
@@ -93,7 +93,7 @@ func (b *Builder) BuildBackend(def BackendDef) (Backend, error) {
 	return n, nil
 }
 
-// BuildService creates a Service using the definition passed as param
+// BuildService creates a Service using the definition passed as param.
 func (b *Builder) BuildService(def ServiceDef) (Service, error) {
 	b.logger.Debugf("building '%s' class '%s'", def.ID, def.Class)
 	if def.ID == "" {
@@ -180,7 +180,7 @@ func (b *Builder) PingAll() error {
 	return nil
 }
 
-// Logger returns logger
+// Logger returns logger.
 func (b Builder) Logger() yalogi.Logger {
 	return b.logger
 }

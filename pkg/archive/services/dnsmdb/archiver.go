@@ -1,5 +1,8 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
+// Package dnsmdb implements dnsutil.Archive using mongodb backend.
+//
+// This package is a work in progress and makes no API stability promises.
 package dnsmdb
 
 import (
@@ -21,12 +24,12 @@ import (
 // ServiceClass registered.
 const ServiceClass = "dnsmdb"
 
-// Collection names
+// Collection names.
 const (
 	ResolvColName = "resolvs"
 )
 
-// Default values
+// Default values.
 const (
 	DefaultResolvBulkSize = 1024
 	DefaultSyncSeconds    = 5
@@ -48,7 +51,7 @@ type Archiver struct {
 	bulkResolvs *mongoutil.Bulk
 }
 
-// New creates a new mongodb storage.
+// New creates a new storage.
 func New(id string, session *mgo.Session, db string, opt ...Option) *Archiver {
 	opts := defaultOptions
 	for _, o := range opt {

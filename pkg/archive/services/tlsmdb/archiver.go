@@ -1,5 +1,8 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
+// Package tlsmdb implements tlsutil.Archive using mongodb backend.
+//
+// This package is a work in progress and makes no API stability promises.
 package tlsmdb
 
 import (
@@ -22,14 +25,14 @@ import (
 // ServiceClass registered.
 const ServiceClass = "tlsmdb"
 
-// Collection names
+// Collection names.
 const (
 	ConnectionColName  = "connections"
 	CertificateColName = "certificates"
 	RecordsColName     = "records"
 )
 
-// Default values
+// Default values.
 const (
 	DefaultConnsBulkSize        = 256
 	DefaultRecordsBulkSize      = 1024
@@ -38,7 +41,7 @@ const (
 	DefaultCacheCertsCleanUp    = 5 * time.Minute
 )
 
-// Archiver implements tls archive backend using a mongo database
+// Archiver implements tls archive backend using a mongo database.
 type Archiver struct {
 	id     string
 	opts   options
@@ -56,7 +59,7 @@ type Archiver struct {
 	cacheCerts  *cache.Cache
 }
 
-// New creates a new mongodb storage
+// New creates a new storage.
 func New(id string, session *mgo.Session, db string, opt ...Option) *Archiver {
 	opts := defaultOptions
 	for _, o := range opt {
@@ -72,7 +75,7 @@ func New(id string, session *mgo.Session, db string, opt ...Option) *Archiver {
 	return s
 }
 
-// Option encapsules options
+// Option encapsules options.
 type Option func(*options)
 
 type options struct {
@@ -95,7 +98,7 @@ var defaultOptions = options{
 	cacheCertsCleanUp:    DefaultCacheCertsCleanUp,
 }
 
-// SetLogger option allows set a custom logger
+// SetLogger option allows set a custom logger.
 func SetLogger(l yalogi.Logger) Option {
 	return func(o *options) {
 		if l != nil {
@@ -104,21 +107,21 @@ func SetLogger(l yalogi.Logger) Option {
 	}
 }
 
-// CloseSession option allows close mongo session on shutdown
+// CloseSession option allows close mongo session on shutdown.
 func CloseSession(b bool) Option {
 	return func(o *options) {
 		o.closeSession = b
 	}
 }
 
-// SetPrefix option allows set a prefix to collection
+// SetPrefix option allows set a prefix to collection.
 func SetPrefix(s string) Option {
 	return func(o *options) {
 		o.prefix = s
 	}
 }
 
-// Start the archiver
+// Start the archiver.
 func (a *Archiver) Start() error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -152,7 +155,7 @@ func (a *Archiver) Start() error {
 	return nil
 }
 
-// SaveConnection implements tlsutil.Archiver interface
+// SaveConnection implements tlsutil.Archiver interface.
 func (a *Archiver) SaveConnection(ctx context.Context, cn *tlsutil.ConnectionData) (string, error) {
 	if !a.started {
 		return "", tlsutil.ErrUnavailable
@@ -165,7 +168,7 @@ func (a *Archiver) SaveConnection(ctx context.Context, cn *tlsutil.ConnectionDat
 	return cn.ID, nil
 }
 
-// SaveCertificate implements tlsutil.Archiver interface
+// SaveCertificate implements tlsutil.Archiver interface.
 func (a *Archiver) SaveCertificate(ctx context.Context, cert *tlsutil.CertificateData) (string, error) {
 	if !a.started {
 		return "", tlsutil.ErrUnavailable
@@ -198,7 +201,7 @@ func (a *Archiver) SaveCertificate(ctx context.Context, cert *tlsutil.Certificat
 	return cert.ID, nil
 }
 
-// StoreRecord implements tlsutil.Archiver interface
+// StoreRecord implements tlsutil.Archiver interface.
 func (a *Archiver) StoreRecord(r *tlsutil.RecordData) error {
 	if !a.started {
 		return tlsutil.ErrUnavailable
@@ -211,7 +214,7 @@ func (a *Archiver) StoreRecord(r *tlsutil.RecordData) error {
 	return nil
 }
 
-// Shutdown closes the conection
+// Shutdown closes the conection.
 func (a *Archiver) Shutdown() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -228,7 +231,7 @@ func (a *Archiver) Shutdown() {
 	return
 }
 
-// Ping tests the connection with the storage
+// Ping tests the connection with the storage.
 func (a *Archiver) Ping() error {
 	a.logger.Debugf("ping")
 	if !a.started {
@@ -287,12 +290,12 @@ func (a *Archiver) ID() string {
 	return a.id
 }
 
-// Class implements archive.Service interface
+// Class implements archive.Service interface.
 func (a *Archiver) Class() string {
 	return ServiceClass
 }
 
-// Implements implements archive.Service interface
+// Implements implements archive.Service interface.
 func (a *Archiver) Implements() []archive.API {
 	return []archive.API{archive.TLSAPI}
 }

@@ -1,5 +1,8 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
+// Package eventmdb implements event.Archive using mongodb backend.
+//
+// This package is a work in progress and makes no API stability promises.
 package eventmdb
 
 import (
@@ -18,7 +21,7 @@ import (
 // ServiceClass registered.
 const ServiceClass = "eventmdb"
 
-// Collection names
+// Collection names.
 const (
 	EventColName = "events"
 )
@@ -36,7 +39,7 @@ type Archiver struct {
 	started bool
 }
 
-// New creates a new mongodb storage
+// New creates a new storage.
 func New(id string, session *mgo.Session, db string, opt ...Option) *Archiver {
 	opts := defaultOptions
 	for _, o := range opt {
@@ -52,7 +55,7 @@ func New(id string, session *mgo.Session, db string, opt ...Option) *Archiver {
 	return s
 }
 
-// Option encapsules options
+// Option encapsules options.
 type Option func(*options)
 
 type options struct {
@@ -63,7 +66,7 @@ type options struct {
 
 var defaultOptions = options{logger: yalogi.LogNull}
 
-// SetLogger option allows set a custom logger
+// SetLogger option allows set a custom logger.
 func SetLogger(l yalogi.Logger) Option {
 	return func(o *options) {
 		if l != nil {
@@ -72,21 +75,21 @@ func SetLogger(l yalogi.Logger) Option {
 	}
 }
 
-// CloseSession option allows close mongo session on shutdown
+// CloseSession option allows close mongo session on shutdown.
 func CloseSession(b bool) Option {
 	return func(o *options) {
 		o.closeSession = b
 	}
 }
 
-// SetPrefix option allows set a prefix to collection
+// SetPrefix option allows set a prefix to collection.
 func SetPrefix(s string) Option {
 	return func(o *options) {
 		o.prefix = s
 	}
 }
 
-// Start the archiver
+// Start the archiver.
 func (a *Archiver) Start() error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -105,7 +108,7 @@ func (a *Archiver) Start() error {
 	return nil
 }
 
-// SaveEvent implements event.Archiver interface
+// SaveEvent implements event.Archiver interface.
 func (a *Archiver) SaveEvent(ctx context.Context, e event.Event) (string, error) {
 	if !a.started {
 		return "", event.ErrUnavailable
@@ -118,7 +121,7 @@ func (a *Archiver) SaveEvent(ctx context.Context, e event.Event) (string, error)
 	return e.ID, nil
 }
 
-// Shutdown closes the conection
+// Shutdown closes the conection.
 func (a *Archiver) Shutdown() {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -134,7 +137,7 @@ func (a *Archiver) Shutdown() {
 	return
 }
 
-// Ping tests the connection with the storage
+// Ping tests the connection with the storage.
 func (a *Archiver) Ping() error {
 	a.logger.Debugf("ping")
 	if !a.started {
@@ -164,7 +167,7 @@ func (a *Archiver) Class() string {
 	return ServiceClass
 }
 
-// Implements implements archive.Service interface
+// Implements implements archive.Service interface.
 func (a *Archiver) Implements() []archive.API {
 	return []archive.API{archive.EventAPI}
 }
