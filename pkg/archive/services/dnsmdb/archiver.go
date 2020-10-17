@@ -135,7 +135,7 @@ func (a *Archiver) Start() error {
 }
 
 // SaveResolv implements dnsutil.Archiver interface.
-func (a *Archiver) SaveResolv(ctx context.Context, r dnsutil.ResolvData) (string, error) {
+func (a *Archiver) SaveResolv(ctx context.Context, r *dnsutil.ResolvData) (string, error) {
 	if !a.started {
 		return "", dnsutil.ErrUnavailable
 	}

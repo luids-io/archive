@@ -2,22 +2,26 @@
 
 package dnsmdb
 
+import "github.com/globalsign/mgo"
+
 func (a *Archiver) createIdx() error {
 	return a.createIdxResolvs()
 }
 
 func (a *Archiver) createIdxResolvs() error {
-	// c := a.getCollection(ResolvColName)
-	// index := mgo.Index{
-	// 	Key:        []string{"id"},
-	// 	Unique:     true,
-	// 	DropDups:   false,
-	// 	Background: false,
-	// 	Sparse:     false,
-	// }
-	// err := c.EnsureIndex(index)
-	// if err != nil {
-	// 	return err
-	// }
+	c := a.getCollection(ResolvColName)
+	indexes := []mgo.Index{
+		{Key: []string{"timestamp"}},
+		{Key: []string{"serverIP"}},
+		{Key: []string{"clientIP"}},
+		{Key: []string{"name"}},
+		{Key: []string{"resolvedIPs"}},
+	}
+	for _, idx := range indexes {
+		err := c.EnsureIndex(idx)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
