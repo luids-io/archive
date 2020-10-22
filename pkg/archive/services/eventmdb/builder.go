@@ -35,8 +35,8 @@ func Builder() archive.BuildServiceFn {
 		// parse options
 		bopt := make([]Option, 0)
 		bopt = append(bopt, SetLogger(b.Logger()))
-		//by default, it uses id as database name
-		dbname := def.ID
+		//by default, it uses DefaultDBName
+		dbname := DefaultDBName
 		if def.Opts != nil {
 			var err error
 			dbnameOpt, ok, err := option.String(def.Opts, "dbname")

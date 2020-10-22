@@ -26,6 +26,11 @@ const (
 	EventColName = "events"
 )
 
+// Default values.
+const (
+	DefaultDBName = "luidsdb"
+)
+
 // Archiver implements event archive backend using a mongo database.
 type Archiver struct {
 	id     string

@@ -2,25 +2,16 @@
     {
         "id": "event",
         "class": "eventmdb",
-        "backend": "mongo1",
-        "opts": {
-            "dbname": "luidsdb"
-        }
+        "backend": "mongo1"
     },
     {
         "id": "dns",
         "class": "dnsmdb",
-        "backend": "mongo1",
-        "opts": {
-            "dbname": "luidsdb"
-        }
+        "backend": "mongo1"
     },
     {
         "id": "tls",
         "class": "tlsmdb",
-        "backend": "mongo1",
-        "opts": {
-            "dbname": "luidsdb"
-        }
+        "backend": "mongo1"
     }
 ]

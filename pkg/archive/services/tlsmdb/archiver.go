@@ -34,6 +34,7 @@ const (
 
 // Default values.
 const (
+	DefaultDBName               = "luidsdb"
 	DefaultConnsBulkSize        = 256
 	DefaultRecordsBulkSize      = 1024
 	DefaultSyncSeconds          = 5
