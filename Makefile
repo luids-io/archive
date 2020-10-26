@@ -44,7 +44,7 @@ clean:
 
 docker:
 	@echo "$(WHALE) $@"
-	docker build -t luarchive -f Dockerfile.luarchive .
+	DOCKER_BUILDKIT=1 docker build -t luarchive -f Dockerfile.luarchive .
 
 ## Targets for Makefile.release
 .PHONY: release
