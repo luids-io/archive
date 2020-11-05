@@ -3,6 +3,8 @@ package dnsmdb
 import (
 	"time"
 
+	"golang.org/x/net/publicsuffix"
+
 	"github.com/luids-io/api/dnsutil"
 )
 
@@ -21,6 +23,9 @@ type mdbResolvData struct {
 	ReturnCode    int                    `bson:"returnCode"`
 	ResolvedIPs   []string               `bson:"resolvedIPs,omitempty"`
 	ResponseFlags mdbResolvResponseFlags `bson:"responseFlags"`
+	//calculated info
+	TLD        string `bson:"tld"`
+	TLDPlusOne string `bson:"tldPlusOne"`
 }
 
 type mdbResolvQueryFlags struct {
@@ -61,5 +66,7 @@ func toMongoData(data *dnsutil.ResolvData) mdbResolvData {
 			mdbData.ResolvedIPs = append(mdbData.ResolvedIPs, r.String())
 		}
 	}
+	mdbData.TLD, _ = publicsuffix.PublicSuffix(data.Name)
+	mdbData.TLDPlusOne, _ = publicsuffix.EffectiveTLDPlusOne(data.Name)
 	return mdbData
 }
