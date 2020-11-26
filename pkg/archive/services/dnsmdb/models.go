@@ -20,9 +20,10 @@ type mdbResolvData struct {
 	IsIPv6     bool                `bson:"isIPv6"`
 	QueryFlags mdbResolvQueryFlags `bson:"queryFlags"`
 	//response info
-	ReturnCode    int                    `bson:"returnCode"`
-	ResolvedIPs   []string               `bson:"resolvedIPs,omitempty"`
-	ResponseFlags mdbResolvResponseFlags `bson:"responseFlags"`
+	ReturnCode     int                    `bson:"returnCode"`
+	ResolvedIPs    []string               `bson:"resolvedIPs,omitempty"`
+	ResolvedCNAMEs []string               `bson:"resolvedCNAMEs,omitempty"`
+	ResponseFlags  mdbResolvResponseFlags `bson:"responseFlags"`
 	//calculated info
 	TLD        string `bson:"tld"`
 	TLDPlusOne string `bson:"tldPlusOne"`
@@ -64,6 +65,12 @@ func toMongoData(data *dnsutil.ResolvData) mdbResolvData {
 		mdbData.ResolvedIPs = make([]string, 0, len(data.ResolvedIPs))
 		for _, r := range data.ResolvedIPs {
 			mdbData.ResolvedIPs = append(mdbData.ResolvedIPs, r.String())
+		}
+	}
+	if len(data.ResolvedCNAMEs) > 0 {
+		mdbData.ResolvedCNAMEs = make([]string, 0, len(data.ResolvedCNAMEs))
+		for _, r := range data.ResolvedCNAMEs {
+			mdbData.ResolvedCNAMEs = append(mdbData.ResolvedCNAMEs, r)
 		}
 	}
 	mdbData.TLD, _ = publicsuffix.PublicSuffix(data.Name)

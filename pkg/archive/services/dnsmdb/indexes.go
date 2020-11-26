@@ -16,6 +16,7 @@ func (a *Archiver) createIdxResolvs() error {
 		{Key: []string{"clientIP"}},
 		{Key: []string{"name"}},
 		{Key: []string{"resolvedIPs"}},
+		{Key: []string{"resolvedCNAMEs"}},
 		{Key: []string{"tldPlusOne"}},
 	}
 	for _, idx := range indexes {
