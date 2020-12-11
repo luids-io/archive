@@ -439,7 +439,7 @@ Type=simple
 Restart=on-failure
 RestartSec=1
 User=$SVC_USER
-ExecStart=$BIN_DIR/luarchive --config $ETC_DIR/$NAME/%i.toml
+ExecStart=$BIN_DIR/luarchive --config $ETC_DIR/$NAME/luarchive-%i.toml
 
 [Install]
 WantedBy=multi-user.target
