@@ -32,7 +32,7 @@ COPY --from=build-env /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build-env /etc/passwd /etc/passwd
 
 COPY --from=build-env /app/bin/luarchive /bin/
-COPY --from=build-env /app/configs/docker/luarchive/* /etc/luids/archive/
+COPY --from=build-env /app/configs/docker/archive/* /etc/luids/archive/
 
 USER luarchive
 
