@@ -368,6 +368,10 @@ files      = [ "/etc/luids/archive/services.json" ]
 #[service.tlsutil.archive]
 #enable  = true
 #service = "tls"
+
+[log]
+format = "log"
+
 EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
