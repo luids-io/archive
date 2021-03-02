@@ -14,6 +14,7 @@ import (
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	"golang.org/x/net/publicsuffix"
 
 	"github.com/luids-io/api/dnsutil"
 	"github.com/luids-io/archive/pkg/archive"
@@ -34,6 +35,7 @@ const (
 	DefaultDBName         = "luidsdb"
 	DefaultResolvBulkSize = 1024
 	DefaultSyncSeconds    = 5
+	DefaultMaxSize        = 100
 )
 
 // Archiver implements dns archive backend using a mongo database.
@@ -140,13 +142,97 @@ func (a *Archiver) SaveResolv(ctx context.Context, r *dnsutil.ResolvData) (strin
 	if !a.started {
 		return "", dnsutil.ErrUnavailable
 	}
-	r.ID = bson.NewObjectId().String()
-	err := a.bulkResolvs.Insert(toMongoData(r))
+	r.ID = bson.NewObjectId().Hex()
+	r.TLD, _ = publicsuffix.PublicSuffix(r.Name)
+	r.TLDPlusOne, _ = publicsuffix.EffectiveTLDPlusOne(r.Name)
+
+	var m mdbResolvData
+	toMData(r, &m)
+	err := a.bulkResolvs.Insert(m)
 	if err != nil {
 		a.logger.Warnf("%s: saving resolv '%s': %v", a.id, r.Name, err)
 		return "", dnsutil.ErrInternal
 	}
 	return r.ID, nil
+}
+
+// GetResolv implements dnsutil.Finder interface.
+func (a *Archiver) GetResolv(ctx context.Context, id string) (dnsutil.ResolvData, bool, error) {
+	if !a.started {
+		return dnsutil.ResolvData{}, false, dnsutil.ErrUnavailable
+	}
+	if id == "" {
+		return dnsutil.ResolvData{}, false, dnsutil.ErrBadRequest
+	}
+	//if invalid id, then returns not found
+	if !bson.IsObjectIdHex(id) {
+		return dnsutil.ResolvData{}, false, nil
+	}
+	//do find
+	var m mdbResolvData
+	c := a.getCollection(ResolvColName)
+	err := c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&m)
+	if err == mgo.ErrNotFound {
+		return dnsutil.ResolvData{}, false, nil
+	}
+	if err != nil {
+		a.logger.Warnf("%s: get resolv '%s': %v", a.id, id, err)
+		return dnsutil.ResolvData{}, false, dnsutil.ErrInternal
+	}
+	//encode response
+	var r dnsutil.ResolvData
+	fromMData(&m, &r)
+	return r, true, nil
+}
+
+// ListResolvs implements dnsutil.Finder interface.
+func (a *Archiver) ListResolvs(ctx context.Context, filters []dnsutil.ResolvsFilter,
+	rev bool, max int, next string) ([]dnsutil.ResolvData, string, error) {
+	if !a.started {
+		return nil, "", dnsutil.ErrUnavailable
+	}
+	c := a.getCollection(ResolvColName)
+	//create filter
+	filter := createFilter(filters)
+	if next != "" && bson.IsObjectIdHex(next) {
+		if rev {
+			filter["_id"] = bson.M{"$lt": bson.ObjectIdHex(next)}
+		} else {
+			filter["_id"] = bson.M{"$gt": bson.ObjectIdHex(next)}
+		}
+	}
+	//do find
+	q := c.Find(filter)
+	if rev {
+		q = q.Sort("-_id")
+	}
+	if max == 0 && DefaultMaxSize > 0 {
+		max = DefaultMaxSize
+	}
+	if max > 0 {
+		q = q.Limit(max)
+	}
+	//do query
+	var mdbAll []mdbResolvData
+	err := q.All(&mdbAll)
+	if err != nil {
+		a.logger.Warnf("%s: listresolvs(): %v", a.id, err)
+		return nil, "", dnsutil.ErrInternal
+	}
+	//convert data
+	last := ""
+	result := make([]dnsutil.ResolvData, 0, len(mdbAll))
+	for _, m := range mdbAll {
+		var r dnsutil.ResolvData
+		fromMData(&m, &r)
+		result = append(result, r)
+		last = r.ID
+	}
+	//return
+	if max > 0 && len(result) == max {
+		return result, last, nil
+	}
+	return result, "", nil
 }
 
 // Shutdown closes the conection.
@@ -229,4 +315,60 @@ func (a *Archiver) Class() string {
 // Implements implements archive.Service interface.
 func (a *Archiver) Implements() []archive.API {
 	return []archive.API{archive.DNSAPI}
+}
+
+func createFilter(filters []dnsutil.ResolvsFilter) bson.M {
+	switch len(filters) {
+	case 0:
+		return bson.M{}
+	case 1:
+		return bsonFilter(filters[0])
+	}
+	mfilters := make([]bson.M, 0, len(filters))
+	for _, f := range filters {
+		mfilters = append(mfilters, bsonFilter(f))
+	}
+	return bson.M{"$or": mfilters}
+}
+
+func bsonFilter(f dnsutil.ResolvsFilter) bson.M {
+	m := make(bson.M)
+	if !f.Since.IsZero() || !f.To.IsZero() {
+		tfilter := bson.M{}
+		if !f.Since.IsZero() {
+			tfilter["$gt"] = f.Since
+		}
+		if !f.To.IsZero() {
+			tfilter["$lt"] = f.To
+		}
+		m["timestamp"] = tfilter
+	}
+	if f.Client != nil {
+		m["clientIP"] = f.Client.String()
+	}
+	if f.Server != nil {
+		m["serverIP"] = f.Server.String()
+	}
+	if f.Name != "" {
+		m["name"] = f.Name
+	}
+	if f.ResolvedIP != nil {
+		m["resolvedIPs"] = f.ResolvedIP.String()
+	}
+	if f.ResolvedCNAME != "" {
+		m["resolvedCNAMEs"] = f.ResolvedCNAME
+	}
+	if f.QID > 0 {
+		m["qid"] = f.QID
+	}
+	if f.ReturnCode > 0 {
+		m["returnCode"] = f.ReturnCode
+	}
+	if f.TLD != "" {
+		m["tld"] = f.TLD
+	}
+	if f.TLDPlusOne != "" {
+		m["tldPlusOne"] = f.TLDPlusOne
+	}
+	return m
 }

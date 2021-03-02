@@ -17,7 +17,7 @@ SVC_USER=lu${NAME}
 SVC_GROUP=luids
 
 ## Binaries
-BINARIES="luarchive"
+BINARIES="luarchive luarchivecli"
 
 ## Download
 DOWNLOAD_BASE="https://github.com/luids-io/${NAME}/releases/download"
@@ -368,6 +368,10 @@ files      = [ "/etc/luids/archive/services.json" ]
 #[service.tlsutil.archive]
 #enable  = true
 #service = "tls"
+
+#[service.dnsutil.finder]
+#enable  = true
+#service = "dns"
 
 [log]
 format = "log"

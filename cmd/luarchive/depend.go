@@ -8,9 +8,10 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc"
 
-	dnsapi "github.com/luids-io/api/dnsutil/grpc/archive"
-	eventapi "github.com/luids-io/api/event/grpc/archive"
-	tlsapi "github.com/luids-io/api/tlsutil/grpc/archive"
+	dnsarchive "github.com/luids-io/api/dnsutil/grpc/archive"
+	dnsfinder "github.com/luids-io/api/dnsutil/grpc/finder"
+	eventarchive "github.com/luids-io/api/event/grpc/archive"
+	tlsarchive "github.com/luids-io/api/tlsutil/grpc/archive"
 	iconfig "github.com/luids-io/archive/internal/config"
 	ifactory "github.com/luids-io/archive/internal/factory"
 	"github.com/luids-io/archive/pkg/archive"
@@ -91,7 +92,7 @@ func createArchiveEventAPI(gsrv *grpc.Server, finder *archive.Builder, msrv *ser
 		if err != nil {
 			return err
 		}
-		eventapi.RegisterServer(gsrv, gsvc)
+		eventarchive.RegisterServer(gsrv, gsvc)
 		msrv.Register(serverd.Service{Name: "service.event.archive"})
 	}
 	return nil
@@ -104,7 +105,7 @@ func createArchiveDNSAPI(gsrv *grpc.Server, finder *archive.Builder, msrv *serve
 		if err != nil {
 			return err
 		}
-		dnsapi.RegisterServer(gsrv, gsvc)
+		dnsarchive.RegisterServer(gsrv, gsvc)
 		msrv.Register(serverd.Service{Name: "service.dnsutil.archive"})
 	}
 	return nil
@@ -117,8 +118,21 @@ func createArchiveTLSAPI(gsrv *grpc.Server, finder *archive.Builder, msrv *serve
 		if err != nil {
 			return err
 		}
-		tlsapi.RegisterServer(gsrv, gsvc)
+		tlsarchive.RegisterServer(gsrv, gsvc)
 		msrv.Register(serverd.Service{Name: "service.tlsutil.archive"})
+	}
+	return nil
+}
+
+func createFinderDNSAPI(gsrv *grpc.Server, finder *archive.Builder, msrv *serverd.Manager, logger yalogi.Logger) error {
+	cfgFinder := cfg.Data("service.dnsutil.finder").(*iconfig.FinderDNSAPICfg)
+	if cfgFinder.Enable {
+		gsvc, err := ifactory.FinderDNSAPI(cfgFinder, finder, logger)
+		if err != nil {
+			return err
+		}
+		dnsfinder.RegisterServer(gsrv, gsvc)
+		msrv.Register(serverd.Service{Name: "service.dnsutil.finder"})
 	}
 	return nil
 }

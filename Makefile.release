@@ -10,7 +10,7 @@ endif
 
 
 NAME:=archive
-COMMANDS=luarchive
+COMMANDS=luarchive luarchivecli
 VERSION=$(shell git describe --match 'v[0-9]*' --dirty='.m' --always | sed 's/^v//')
 LINUX_ARCH:=amd64 arm arm64 ppc64le s390x mips mips64le
 FREEBSD_ARCH:=amd64

@@ -26,7 +26,7 @@ func ArchiveEventAPI(cfg *config.ArchiveEventAPICfg, finder *archive.Builder, lo
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
 	}
-	svc, err := getArchiveService(cfg.Service, archive.EventAPI, finder)
+	svc, err := getService(cfg.Service, archive.EventAPI, finder)
 	if err != nil {
 		return nil, fmt.Errorf("'eventapi' service: %v", err)
 	}
@@ -49,7 +49,7 @@ func ArchiveDNSAPI(cfg *config.ArchiveDNSAPICfg, finder *archive.Builder, logger
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
 	}
-	svc, err := getArchiveService(cfg.Service, archive.DNSAPI, finder)
+	svc, err := getService(cfg.Service, archive.DNSAPI, finder)
 	if err != nil {
 		return nil, fmt.Errorf("'dnsapi' service: %v", err)
 	}
@@ -72,7 +72,7 @@ func ArchiveTLSAPI(cfg *config.ArchiveTLSAPICfg, finder *archive.Builder, logger
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
 	}
-	svc, err := getArchiveService(cfg.Service, archive.TLSAPI, finder)
+	svc, err := getService(cfg.Service, archive.TLSAPI, finder)
 	if err != nil {
 		return nil, fmt.Errorf("'tlsapi' service: %v", err)
 	}
@@ -84,27 +84,4 @@ func ArchiveTLSAPI(cfg *config.ArchiveTLSAPICfg, finder *archive.Builder, logger
 		logger = yalogi.LogNull
 	}
 	return tlsapi.NewService(c, tlsapi.SetServiceLogger(logger)), nil
-}
-
-func getArchiveService(name string, api archive.API, finder *archive.Builder) (archive.Service, error) {
-	if name == "" {
-		return nil, errors.New("service id is empty")
-	}
-	svc, ok := finder.Service(name)
-	if !ok {
-		return nil, fmt.Errorf("can't find service with id '%s'", name)
-	}
-	if !implements(svc, api) {
-		return nil, fmt.Errorf("service '%s' don't implements api", name)
-	}
-	return svc, nil
-}
-
-func implements(svc archive.Service, api archive.API) bool {
-	for _, v := range svc.Implements() {
-		if v == api {
-			return true
-		}
-	}
-	return false
 }

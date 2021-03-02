@@ -38,6 +38,12 @@ func Default(program string) *goconfig.Config {
 			Data:     &iconfig.ArchiveTLSAPICfg{Log: true},
 		},
 		goconfig.Section{
+			Name:     "service.dnsutil.finder",
+			Required: false,
+			Short:    false,
+			Data:     &iconfig.FinderDNSAPICfg{Log: true},
+		},
+		goconfig.Section{
 			Name:     "server",
 			Required: true,
 			Short:    true,
@@ -63,10 +69,11 @@ func Default(program string) *goconfig.Config {
 	}
 	// add aditional validators
 	cfg.AddValidator(func(cfg *goconfig.Config) error {
-		noEvent := cfg.Data("service.event.archive").Empty()
-		noDNS := cfg.Data("service.dnsutil.archive").Empty()
-		noTLS := cfg.Data("service.tlsutil.archive").Empty()
-		if noEvent && noDNS && noTLS {
+		noEventA := cfg.Data("service.event.archive").Empty()
+		noDNSA := cfg.Data("service.dnsutil.archive").Empty()
+		noTLSA := cfg.Data("service.tlsutil.archive").Empty()
+		noDNSF := cfg.Data("service.dnsutil.finder").Empty()
+		if noEventA && noDNSA && noTLSA && noDNSF {
 			return errors.New("enable service is required")
 		}
 		return nil

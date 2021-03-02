@@ -3,6 +3,7 @@
 package factory
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/luids-io/archive/internal/config"
@@ -95,4 +96,27 @@ func loadServiceDefs(dbFiles []string) ([]archive.ServiceDef, error) {
 		loadedDB = append(loadedDB, entries...)
 	}
 	return loadedDB, nil
+}
+
+func getService(name string, api archive.API, finder *archive.Builder) (archive.Service, error) {
+	if name == "" {
+		return nil, errors.New("service id is empty")
+	}
+	svc, ok := finder.Service(name)
+	if !ok {
+		return nil, fmt.Errorf("can't find service with id '%s'", name)
+	}
+	if !implements(svc, api) {
+		return nil, fmt.Errorf("service '%s' don't implements api", name)
+	}
+	return svc, nil
+}
+
+func implements(svc archive.Service, api archive.API) bool {
+	for _, v := range svc.Implements() {
+		if v == api {
+			return true
+		}
+	}
+	return false
 }

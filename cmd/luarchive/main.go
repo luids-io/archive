@@ -93,15 +93,19 @@ func main() {
 	// create grpc services
 	err = createArchiveEventAPI(gsrv, archivers, msrv, logger)
 	if err != nil {
-		logger.Fatalf("couldn't create eventapi service: %v", err)
+		logger.Fatalf("couldn't create event archive service: %v", err)
 	}
 	err = createArchiveDNSAPI(gsrv, archivers, msrv, logger)
 	if err != nil {
-		logger.Fatalf("couldn't create dnsapi service: %v", err)
+		logger.Fatalf("couldn't create dns archive service: %v", err)
 	}
 	err = createArchiveTLSAPI(gsrv, archivers, msrv, logger)
 	if err != nil {
-		logger.Fatalf("couldn't create tlsapi service: %v", err)
+		logger.Fatalf("couldn't create tls arhive service: %v", err)
+	}
+	err = createFinderDNSAPI(gsrv, archivers, msrv, logger)
+	if err != nil {
+		logger.Fatalf("couldn't create dns finder service: %v", err)
 	}
 
 	// creates health server

@@ -1,7 +1,7 @@
 # Makefile for building
 
 # Project binaries
-COMMANDS=luarchive
+COMMANDS=luarchive luarchivecli
 BINARIES=$(addprefix bin/,$(COMMANDS))
 
 # Used to populate version in binaries

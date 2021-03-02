@@ -16,5 +16,9 @@ service = "dns"
 enable  = true
 service = "tls"
 
+[service.dnsutil.finder]
+enable  = true
+service = "dns"
+
 [server]
 listenuri  = "tcp://0.0.0.0:5821"

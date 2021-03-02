@@ -1,15 +1,16 @@
 package dnsmdb
 
 import (
+	"net"
 	"time"
 
-	"golang.org/x/net/publicsuffix"
+	"github.com/globalsign/mgo/bson"
 
 	"github.com/luids-io/api/dnsutil"
 )
 
 type mdbResolvData struct {
-	ID        string        `bson:"_id"`
+	ID        bson.ObjectId `bson:"_id"`
 	Timestamp time.Time     `bson:"timestamp"`
 	Duration  time.Duration `bson:"duration"`
 	ServerIP  string        `bson:"serverIP"`
@@ -39,41 +40,69 @@ type mdbResolvResponseFlags struct {
 	AuthenticatedData bool `bson:"authenticatedData"`
 }
 
-func toMongoData(data *dnsutil.ResolvData) mdbResolvData {
-	mdbData := mdbResolvData{
-		ID:        data.ID,
-		Timestamp: data.Timestamp,
-		Duration:  data.Duration,
-		ServerIP:  data.Server.String(),
-		ClientIP:  data.Client.String(),
-		//query data
-		QID:    data.QID,
-		Name:   data.Name,
-		IsIPv6: data.IsIPv6,
-		QueryFlags: mdbResolvQueryFlags{
-			Do:                data.QueryFlags.Do,
-			AuthenticatedData: data.QueryFlags.AuthenticatedData,
-			CheckingDisabled:  data.QueryFlags.CheckingDisabled,
-		},
-		//response data
-		ReturnCode: data.ReturnCode,
-		ResponseFlags: mdbResolvResponseFlags{
-			AuthenticatedData: data.ResponseFlags.AuthenticatedData,
-		},
+func toMData(src *dnsutil.ResolvData, dst *mdbResolvData) {
+	if src.ID != "" {
+		dst.ID = bson.ObjectIdHex(src.ID)
 	}
-	if len(data.ResolvedIPs) > 0 {
-		mdbData.ResolvedIPs = make([]string, 0, len(data.ResolvedIPs))
-		for _, r := range data.ResolvedIPs {
-			mdbData.ResolvedIPs = append(mdbData.ResolvedIPs, r.String())
+	dst.Timestamp = src.Timestamp
+	dst.Duration = src.Duration
+	dst.ServerIP = src.Server.String()
+	dst.ClientIP = src.Client.String()
+	//query data
+	dst.QID = src.QID
+	dst.Name = src.Name
+	dst.IsIPv6 = src.IsIPv6
+	dst.QueryFlags.Do = src.QueryFlags.Do
+	dst.QueryFlags.AuthenticatedData = src.QueryFlags.AuthenticatedData
+	dst.QueryFlags.CheckingDisabled = src.QueryFlags.CheckingDisabled
+	//response data
+	dst.ReturnCode = src.ReturnCode
+	dst.ResponseFlags.AuthenticatedData = src.ResponseFlags.AuthenticatedData
+	if len(src.ResolvedIPs) > 0 {
+		dst.ResolvedIPs = make([]string, 0, len(src.ResolvedIPs))
+		for _, ip := range src.ResolvedIPs {
+			dst.ResolvedIPs = append(dst.ResolvedIPs, ip.String())
 		}
 	}
-	if len(data.ResolvedCNAMEs) > 0 {
-		mdbData.ResolvedCNAMEs = make([]string, 0, len(data.ResolvedCNAMEs))
-		for _, r := range data.ResolvedCNAMEs {
-			mdbData.ResolvedCNAMEs = append(mdbData.ResolvedCNAMEs, r)
+	if len(src.ResolvedCNAMEs) > 0 {
+		dst.ResolvedCNAMEs = make([]string, 0, len(src.ResolvedCNAMEs))
+		for _, cname := range src.ResolvedCNAMEs {
+			dst.ResolvedCNAMEs = append(dst.ResolvedCNAMEs, cname)
 		}
 	}
-	mdbData.TLD, _ = publicsuffix.PublicSuffix(data.Name)
-	mdbData.TLDPlusOne, _ = publicsuffix.EffectiveTLDPlusOne(data.Name)
-	return mdbData
+	dst.TLD = src.TLD
+	dst.TLDPlusOne = src.TLDPlusOne
+}
+
+func fromMData(src *mdbResolvData, dst *dnsutil.ResolvData) {
+	dst.ID = src.ID.Hex()
+	dst.Timestamp = src.Timestamp
+	dst.Duration = src.Duration
+	dst.Server = net.ParseIP(src.ServerIP)
+	dst.Client = net.ParseIP(src.ClientIP)
+	//query data
+	dst.QID = src.QID
+	dst.Name = src.Name
+	dst.IsIPv6 = src.IsIPv6
+	dst.QueryFlags.Do = src.QueryFlags.Do
+	dst.QueryFlags.AuthenticatedData = src.QueryFlags.AuthenticatedData
+	dst.QueryFlags.CheckingDisabled = src.QueryFlags.CheckingDisabled
+	//response data
+	dst.ReturnCode = src.ReturnCode
+	dst.ResponseFlags.AuthenticatedData = src.ResponseFlags.AuthenticatedData
+	if len(src.ResolvedIPs) > 0 {
+		dst.ResolvedIPs = make([]net.IP, 0, len(src.ResolvedIPs))
+		for _, ip := range src.ResolvedIPs {
+			dst.ResolvedIPs = append(dst.ResolvedIPs, net.ParseIP(ip))
+		}
+	}
+	if len(src.ResolvedCNAMEs) > 0 {
+		dst.ResolvedCNAMEs = make([]string, 0, len(src.ResolvedCNAMEs))
+		for _, cname := range src.ResolvedCNAMEs {
+			dst.ResolvedCNAMEs = append(dst.ResolvedCNAMEs, cname)
+		}
+	}
+	//calculated data
+	dst.TLD = src.TLD
+	dst.TLDPlusOne = src.TLDPlusOne
 }
