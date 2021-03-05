@@ -11,6 +11,7 @@ func (a *Archiver) createIdx() error {
 func (a *Archiver) createIdxResolvs() error {
 	c := a.getCollection(ResolvColName)
 	indexes := []mgo.Index{
+		{Key: []string{"id"}, Unique: true},
 		{Key: []string{"timestamp"}},
 		{Key: []string{"serverIP"}},
 		{Key: []string{"clientIP"}},

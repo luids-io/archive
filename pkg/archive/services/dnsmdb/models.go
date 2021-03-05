@@ -1,16 +1,19 @@
 package dnsmdb
 
 import (
+	"errors"
 	"net"
 	"time"
 
 	"github.com/globalsign/mgo/bson"
+	"github.com/google/uuid"
 
 	"github.com/luids-io/api/dnsutil"
 )
 
 type mdbResolvData struct {
-	ID        bson.ObjectId `bson:"_id"`
+	StorageID bson.ObjectId `bson:"_id"`
+	ID        string        `bson:"id"`
 	Timestamp time.Time     `bson:"timestamp"`
 	Duration  time.Duration `bson:"duration"`
 	ServerIP  string        `bson:"serverIP"`
@@ -40,9 +43,11 @@ type mdbResolvResponseFlags struct {
 	AuthenticatedData bool `bson:"authenticatedData"`
 }
 
-func toMData(src *dnsutil.ResolvData, dst *mdbResolvData) {
-	if src.ID != "" {
-		dst.ID = bson.ObjectIdHex(src.ID)
+func toMData(src *dnsutil.ResolvData, dst *mdbResolvData) (err error) {
+	dst.ID = src.ID.String()
+	if dst.ID == "" {
+		err = errors.New("invalid id")
+		return
 	}
 	dst.Timestamp = src.Timestamp
 	dst.Duration = src.Duration
@@ -72,10 +77,15 @@ func toMData(src *dnsutil.ResolvData, dst *mdbResolvData) {
 	}
 	dst.TLD = src.TLD
 	dst.TLDPlusOne = src.TLDPlusOne
+	return
 }
 
-func fromMData(src *mdbResolvData, dst *dnsutil.ResolvData) {
-	dst.ID = src.ID.Hex()
+func fromMData(src *mdbResolvData, dst *dnsutil.ResolvData) (err error) {
+	dst.ID, err = uuid.Parse(src.ID)
+	if err != nil {
+		err = errors.New("invalid id")
+		return
+	}
 	dst.Timestamp = src.Timestamp
 	dst.Duration = src.Duration
 	dst.Server = net.ParseIP(src.ServerIP)
@@ -105,4 +115,5 @@ func fromMData(src *mdbResolvData, dst *dnsutil.ResolvData) {
 	//calculated data
 	dst.TLD = src.TLD
 	dst.TLDPlusOne = src.TLDPlusOne
+	return
 }

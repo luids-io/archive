@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 
 	"github.com/luids-io/api/dnsutil"
@@ -41,7 +42,12 @@ var getresolvCmd = &cobra.Command{
 		//process
 		hasErrs := false
 		for _, id := range args {
-			data, found, err := cli.GetResolv(ctx, id)
+			uid, err := uuid.Parse(id)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "%s: invalid uuid: %v\n", id, err)
+				os.Exit(1)
+			}
+			data, found, err := cli.GetResolv(ctx, uid)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "%s: %v\n", id, err)
 				hasErrs = true

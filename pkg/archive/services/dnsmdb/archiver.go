@@ -14,6 +14,7 @@ import (
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	"github.com/google/uuid"
 	"golang.org/x/net/publicsuffix"
 
 	"github.com/luids-io/api/dnsutil"
@@ -138,50 +139,69 @@ func (a *Archiver) Start() error {
 }
 
 // SaveResolv implements dnsutil.Archiver interface.
-func (a *Archiver) SaveResolv(ctx context.Context, r *dnsutil.ResolvData) (string, error) {
+func (a *Archiver) SaveResolv(ctx context.Context, rd dnsutil.ResolvData) (uuid.UUID, error) {
 	if !a.started {
-		return "", dnsutil.ErrUnavailable
+		return uuid.Nil, dnsutil.ErrUnavailable
 	}
-	r.ID = bson.NewObjectId().Hex()
-	r.TLD, _ = publicsuffix.PublicSuffix(r.Name)
-	r.TLDPlusOne, _ = publicsuffix.EffectiveTLDPlusOne(r.Name)
-
-	var m mdbResolvData
-	toMData(r, &m)
-	err := a.bulkResolvs.Insert(m)
+	// create new uuid if not set
+	sid := rd.ID.String()
+	if sid == "" {
+		newid, err := uuid.NewRandom()
+		if err != nil {
+			a.logger.Warnf("%s: saveresolv(): generating new id: %v", a.id, err)
+			return uuid.Nil, dnsutil.ErrInternal
+		}
+		rd.ID = newid
+		sid = rd.ID.String()
+	}
+	// compute fields
+	rd.TLD, _ = publicsuffix.PublicSuffix(rd.Name)
+	rd.TLDPlusOne, _ = publicsuffix.EffectiveTLDPlusOne(rd.Name)
+	// convert to mongo data
+	m := &mdbResolvData{}
+	err := toMData(&rd, m)
 	if err != nil {
-		a.logger.Warnf("%s: saving resolv '%s': %v", a.id, r.Name, err)
-		return "", dnsutil.ErrInternal
+		a.logger.Warnf("%s: saveresolv(%s): converting to mongo: %v", a.id, sid, err)
+		return uuid.Nil, dnsutil.ErrBadRequest
 	}
-	return r.ID, nil
+	// store data
+	m.StorageID = bson.NewObjectId()
+	err = a.bulkResolvs.Insert(m)
+	if err != nil {
+		a.logger.Warnf("%s: saveresolv(%s): inserting in bulk: %v", a.id, sid, err)
+		return uuid.Nil, dnsutil.ErrInternal
+	}
+	return rd.ID, nil
 }
 
 // GetResolv implements dnsutil.Finder interface.
-func (a *Archiver) GetResolv(ctx context.Context, id string) (dnsutil.ResolvData, bool, error) {
+func (a *Archiver) GetResolv(ctx context.Context, id uuid.UUID) (dnsutil.ResolvData, bool, error) {
 	if !a.started {
 		return dnsutil.ResolvData{}, false, dnsutil.ErrUnavailable
 	}
-	if id == "" {
-		return dnsutil.ResolvData{}, false, dnsutil.ErrBadRequest
-	}
 	//if invalid id, then returns not found
-	if !bson.IsObjectIdHex(id) {
+	sid := id.String()
+	if sid == "" {
 		return dnsutil.ResolvData{}, false, nil
 	}
 	//do find
 	var m mdbResolvData
 	c := a.getCollection(ResolvColName)
-	err := c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&m)
+	err := c.Find(bson.M{"id": sid}).One(&m)
 	if err == mgo.ErrNotFound {
 		return dnsutil.ResolvData{}, false, nil
 	}
 	if err != nil {
-		a.logger.Warnf("%s: get resolv '%s': %v", a.id, id, err)
+		a.logger.Warnf("%s: getresolv(%s): %v", a.id, sid, err)
 		return dnsutil.ResolvData{}, false, dnsutil.ErrInternal
 	}
 	//encode response
 	var r dnsutil.ResolvData
-	fromMData(&m, &r)
+	err = fromMData(&m, &r)
+	if err != nil {
+		a.logger.Warnf("%s: getresolv(%s): converting from mongo: %v", a.id, sid, err)
+		return dnsutil.ResolvData{}, false, dnsutil.ErrInternal
+	}
 	return r, true, nil
 }
 
@@ -224,9 +244,13 @@ func (a *Archiver) ListResolvs(ctx context.Context, filters []dnsutil.ResolvsFil
 	result := make([]dnsutil.ResolvData, 0, len(mdbAll))
 	for _, m := range mdbAll {
 		var r dnsutil.ResolvData
-		fromMData(&m, &r)
+		err = fromMData(&m, &r)
+		if err != nil {
+			a.logger.Warnf("%s: listresolvs(): converting from mongo '%s': %v", a.id, m.StorageID.Hex(), err)
+			return nil, "", dnsutil.ErrInternal
+		}
 		result = append(result, r)
-		last = r.ID
+		last = m.StorageID.Hex()
 	}
 	//return
 	if max > 0 && len(result) == max {

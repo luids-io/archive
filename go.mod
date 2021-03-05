@@ -7,7 +7,8 @@ require (
 	github.com/google/gopacket v1.1.18 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/luids-io/api v0.0.0-20210226053756-cf5d44049aae
+	github.com/google/uuid v1.2.0
+	github.com/luids-io/api v0.0.0-20210304063537-dd22d64e2b96
 	github.com/luids-io/common v0.0.0-20201020041845-ed2a021e5faa
 	github.com/luids-io/core v0.0.0-20201201052906-a54a33a9bc9d
 	github.com/luisguillenc/tlslayer v0.0.0-20200514135550-a8d356c888c6 // indirect
